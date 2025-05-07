@@ -2,32 +2,87 @@ import { Button } from "@/components/ui/button";
 
 export default function Hero() {
   return (
-    <div className="container mx-auto px-4 py-16 flex-grow flex flex-col lg:flex-row items-center">
-      <div className="lg:w-1/2 mb-10 lg:mb-0">
-        <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">La mejor plataforma de rifas online</h2>
-        <p className="text-white/80 text-lg mb-8">Participa en nuestras rifas con los premios más exclusivos y las mejores oportunidades para ganar.</p>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Button 
-            className="bg-white text-primary-600 hover:bg-gray-100 transition px-6 py-3 rounded-lg text-lg font-semibold"
-            size="lg"
-          >
-            Ver rifas activas
-          </Button>
-          <Button 
-            className="bg-primary-700 text-white hover:bg-primary-800 transition px-6 py-3 rounded-lg text-lg font-semibold border border-white/20"
-            size="lg"
-            variant="outline"
-          >
-            ¿Cómo participar?
-          </Button>
-        </div>
+    <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 py-20">
+      {/* Formas decorativas */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div className="absolute top-0 right-0 bg-white/5 w-96 h-96 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 bg-white/5 w-96 h-96 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
+        <div className="absolute top-1/2 left-1/3 bg-primary-500/10 w-64 h-64 rounded-full -translate-y-1/2 -translate-x-1/2 blur-xl"></div>
       </div>
-      <div className="lg:w-1/2 flex justify-center">
-        <img 
-          src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
-          alt="Boletos de rifa" 
-          className="rounded-xl shadow-2xl max-w-full" 
-        />
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center">
+          <div className="lg:w-1/2 mb-10 lg:mb-0">
+            <div className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium mb-6">
+              ✨ Los mejores premios te esperan
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              La mejor plataforma de 
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500"> rifas online</span>
+            </h1>
+            <p className="text-white/90 text-lg mb-8 max-w-lg">
+              Participa en nuestras rifas con los premios más exclusivos y las mejores oportunidades para ganar grandes premios.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                className="bg-white text-primary-700 hover:bg-gray-100 transition-all px-8 py-3 rounded-full text-lg font-semibold shadow-lg"
+                size="lg"
+              >
+                Ver rifas activas
+              </Button>
+              <Button 
+                className="backdrop-blur-sm bg-white/10 text-white hover:bg-white/20 transition-all px-8 py-3 rounded-full text-lg font-semibold border border-white/30"
+                size="lg"
+                variant="outline"
+              >
+                ¿Cómo participar?
+              </Button>
+            </div>
+            
+            <div className="mt-12 flex items-center space-x-8">
+              <div className="flex flex-col">
+                <span className="text-3xl font-bold text-white">+1000</span>
+                <span className="text-white/80 text-sm">Ganadores</span>
+              </div>
+              <div className="w-px h-10 bg-white/20"></div>
+              <div className="flex flex-col">
+                <span className="text-3xl font-bold text-white">+5M</span>
+                <span className="text-white/80 text-sm">En premios</span>
+              </div>
+              <div className="w-px h-10 bg-white/20"></div>
+              <div className="flex flex-col">
+                <span className="text-3xl font-bold text-white">100%</span>
+                <span className="text-white/80 text-sm">Garantizado</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="lg:w-1/2 flex justify-center">
+            <div className="relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary-300 to-yellow-300 rounded-2xl blur opacity-50"></div>
+              <img 
+                src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                alt="Boletos de rifa" 
+                className="relative rounded-2xl shadow-2xl max-w-full border-4 border-white/20 backdrop-blur-sm" 
+              />
+              
+              {/* Badge flotante */}
+              <div className="absolute -bottom-5 -left-5 bg-white px-4 py-2 rounded-lg shadow-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="flex -space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">JL</div>
+                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">MR</div>
+                    <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs">AG</div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Últimos ganadores</p>
+                    <p className="text-sm font-medium">¡Sé el próximo!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
