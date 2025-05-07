@@ -105,8 +105,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 10;
       const filter = req.query.filter as string;
       
+      console.log("Intentando obtener rifas con:", { page, limit, filter });
+      
       const raffles = await storage.getRaffles(page, limit, filter);
       const total = await storage.getTotalRaffles(filter);
+      
+      console.log("Rifas obtenidas:", { count: raffles.length, total });
       
       res.json({
         data: raffles,
@@ -118,6 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
+      console.error("Error al obtener rifas:", error);
       res.status(500).json({ message: "Error al obtener las rifas" });
     }
   });

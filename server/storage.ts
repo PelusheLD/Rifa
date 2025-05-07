@@ -77,37 +77,59 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRaffles(page = 1, limit = 10, filter?: string): Promise<Raffle[]> {
-    const offset = (page - 1) * limit;
-    
-    let query = db.select().from(raffles)
-      .orderBy(desc(raffles.createdAt))
-      .limit(limit)
-      .offset(offset);
-    
-    if (filter) {
-      if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
-        query = query.where(eq(raffles.status, filter));
-      } else {
-        query = query.where(like(raffles.title, `%${filter}%`));
+    try {
+      const offset = (page - 1) * limit;
+      
+      // Base query
+      let query = db.select().from(raffles);
+      
+      // Aplicar filtro si existe
+      if (filter) {
+        if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
+          query = query.where(eq(raffles.status, filter));
+        } else {
+          query = query.where(like(raffles.title, `%${filter}%`));
+        }
       }
+      
+      // Aplicar orden, límite y offset
+      query = query.orderBy(desc(raffles.createdAt))
+                  .limit(limit)
+                  .offset(offset);
+      
+      console.log("Ejecutando query de rifas");
+      const result = await query;
+      console.log("Query ejecutado exitosamente");
+      
+      return result;
+    } catch (error) {
+      console.error("Error en getRaffles:", error);
+      throw error;
     }
-    
-    return await query;
   }
 
   async getTotalRaffles(filter?: string): Promise<number> {
-    let query = db.select({ count: db.fn.count() }).from(raffles);
-    
-    if (filter) {
-      if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
-        query = query.where(eq(raffles.status, filter));
-      } else {
-        query = query.where(like(raffles.title, `%${filter}%`));
+    try {
+      // En lugar de usar funciones de conteo, vamos a obtener todos los registros y contar
+      let query = db.select().from(raffles);
+      
+      if (filter) {
+        if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
+          query = query.where(eq(raffles.status, filter));
+        } else {
+          query = query.where(like(raffles.title, `%${filter}%`));
+        }
       }
+      
+      console.log("Ejecutando query de conteo");
+      const results = await query;
+      console.log("Query de conteo ejecutado exitosamente, total:", results.length);
+      
+      return results.length;
+    } catch (error) {
+      console.error("Error en getTotalRaffles:", error);
+      throw error;
     }
-    
-    const [result] = await query;
-    return Number(result.count);
   }
 
   async createRaffle(raffle: InsertRaffle): Promise<Raffle> {
@@ -180,12 +202,15 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     // Increment soldTickets count in the raffle
-    await db
-      .update(raffles)
-      .set({
-        soldTickets: db.raw('sold_tickets + 1')
-      })
-      .where(eq(raffles.id, ticket.raffleId));
+    const raffle = await this.getRaffle(ticket.raffleId);
+    if (raffle) {
+      await db
+        .update(raffles)
+        .set({
+          soldTickets: (raffle.soldTickets || 0) + 1
+        })
+        .where(eq(raffles.id, ticket.raffleId));
+    }
     
     return newTicket;
   }
