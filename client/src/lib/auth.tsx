@@ -34,7 +34,7 @@ interface AuthProviderProps {
 }
 
 // Definimos el AuthProvider como una función normal sin usar React.FC
-export function AuthProvider({ children }: AuthProviderProps) {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  ) as React.ReactElement;
+  );
 };
 
 // Hook personalizado para utilizar el contexto de autenticación
