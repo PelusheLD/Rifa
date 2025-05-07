@@ -225,6 +225,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API TICKETS
+
+  // Obtener un ticket específico
+  app.get('/api/tickets/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const ticket = await storage.getTicket(id);
+      
+      if (!ticket) {
+        return res.status(404).json({ message: 'Ticket no encontrado' });
+      }
+      
+      res.json(ticket);
+    } catch (error) {
+      console.error('Error al obtener ticket:', error);
+      res.status(500).json({ message: 'Error al obtener ticket' });
+    }
+  });
+  
+  // Crear un nuevo ticket (reserva)
+  app.post('/api/tickets', async (req: Request, res: Response) => {
+    try {
+      const { raffleId, number, cedula, name, email, phone, paymentStatus } = req.body;
+      
+      // Validación básica
+      if (!raffleId || !number || !cedula || !name || !email || !phone) {
+        return res.status(400).json({ message: 'Faltan campos requeridos' });
+      }
+      
+      // Verificar que la rifa existe
+      const raffle = await storage.getRaffle(raffleId);
+      if (!raffle) {
+        return res.status(404).json({ message: 'Rifa no encontrada' });
+      }
+      
+      // Verificar que el número está disponible (no ha sido reservado ya)
+      const existingTickets = await storage.getTicketsByNumber(raffleId, [number]);
+      if (existingTickets.length > 0) {
+        return res.status(409).json({ message: 'Este número ya ha sido reservado por otra persona' });
+      }
+      
+      // Crear el nuevo ticket
+      const newTicket = await storage.createTicket({
+        raffleId,
+        number,
+        cedula,
+        name,
+        email,
+        phone,
+        paymentStatus
+      });
+      
+      res.status(201).json(newTicket);
+    } catch (error) {
+      console.error('Error al crear ticket:', error);
+      res.status(500).json({ message: 'Error al crear ticket' });
+    }
+  });
+  
+  // Obtener todos los tickets de una rifa
+  app.get('/api/raffles/:raffleId/tickets', async (req: Request, res: Response) => {
+    try {
+      const raffleId = parseInt(req.params.raffleId);
+      
+      // Verificar que la rifa existe
+      const raffle = await storage.getRaffle(raffleId);
+      if (!raffle) {
+        return res.status(404).json({ message: 'Rifa no encontrada' });
+      }
+      
+      const tickets = await storage.getTicketsForRaffle(raffleId);
+      res.json(tickets);
+    } catch (error) {
+      console.error('Error al obtener tickets de la rifa:', error);
+      res.status(500).json({ message: 'Error al obtener tickets' });
+    }
+  });
+  
+  // Obtener números disponibles de una rifa
+  app.get('/api/raffles/:raffleId/available-numbers', async (req: Request, res: Response) => {
+    try {
+      const raffleId = parseInt(req.params.raffleId);
+      
+      // Verificar que la rifa existe
+      const raffle = await storage.getRaffle(raffleId);
+      if (!raffle) {
+        return res.status(404).json({ message: 'Rifa no encontrada' });
+      }
+      
+      const availableNumbers = await storage.getAvailableTickets(raffleId);
+      res.json({ availableNumbers });
+    } catch (error) {
+      console.error('Error al obtener números disponibles:', error);
+      res.status(500).json({ message: 'Error al obtener números disponibles' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

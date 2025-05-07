@@ -175,7 +175,7 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(tickets.raffleId, raffleId),
           // Filtrar por los números en la lista
-          tickets.number.in(numbers)
+          inArray(tickets.number, numbers)
         )
       );
   }

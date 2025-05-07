@@ -112,8 +112,50 @@ export default function ComprarBoletoPage() {
     return raffle.price * selectedNumbers.length;
   };
 
+  // Función para reservar boletos en la base de datos
+  const reserveTickets = async () => {
+    try {
+      // Para cada número seleccionado, crear un registro en la base de datos
+      const reservationPromises = selectedNumbers.map(number => {
+        return fetch('/api/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            raffleId: raffleId,
+            number: number,
+            cedula: formData.cedula,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            paymentStatus: 'pendiente'
+          })
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error(`Error al reservar el número ${number}`);
+          }
+          return res.json();
+        });
+      });
+      
+      // Esperar a que todas las reservas se completen
+      await Promise.all(reservationPromises);
+      
+      return true;
+    } catch (error) {
+      console.error("Error al reservar boletos:", error);
+      toast({
+        title: "Error al reservar números",
+        description: "Hubo un problema al reservar tus números. Por favor, intenta de nuevo.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   // Manejar el envío del formulario
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validación simple
@@ -135,22 +177,40 @@ export default function ComprarBoletoPage() {
       return;
     }
     
-    // Aquí se enviarían los datos a WhatsApp para finalizar la compra
-    const message = `Hola, quiero apartar los siguientes números para la rifa "${raffle?.title}": ${selectedNumbers.join(', ')}. Mis datos: Nombre: ${formData.name}, Cédula: ${formData.cedula}, Teléfono: ${formData.phone}, Email: ${formData.email}. Total a pagar: $${calculateTotal()} MXN`;
-    
-    // Encode el mensaje para URL de WhatsApp
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/+5212345678?text=${encodedMessage}`;
-    
-    // Abrir WhatsApp en nueva ventana
-    window.open(whatsappUrl, '_blank');
-    
-    // Mostrar mensaje de éxito
+    // Mostrar estado de carga
     toast({
-      title: "¡Números apartados!",
-      description: `Has apartado ${selectedNumbers.length} número(s) para la rifa "${raffle?.title}". Se abrirá WhatsApp para finalizar tu compra.`,
+      title: "Procesando tu solicitud",
+      description: "Estamos reservando tus números...",
       variant: "default"
     });
+    
+    // Guardar la información en la base de datos
+    const success = await reserveTickets();
+    
+    // Si se guardó correctamente, dirigir a WhatsApp para finalizar la compra
+    if (success) {
+      // Crear mensaje para WhatsApp
+      const message = `Hola, he apartado los siguientes números para la rifa "${raffle?.title}": ${selectedNumbers.join(', ')}. Mis datos: Nombre: ${formData.name}, Cédula: ${formData.cedula}, Teléfono: ${formData.phone}, Email: ${formData.email}. Total a pagar: $${calculateTotal()} MXN`;
+      
+      // Encode el mensaje para URL de WhatsApp
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/+5212345678?text=${encodedMessage}`;
+      
+      // Abrir WhatsApp en nueva ventana
+      window.open(whatsappUrl, '_blank');
+      
+      // Mostrar mensaje de éxito
+      toast({
+        title: "¡Números apartados!",
+        description: `Has apartado ${selectedNumbers.length} número(s) para la rifa "${raffle?.title}". Se abrirá WhatsApp para finalizar tu compra.`,
+        variant: "default"
+      });
+      
+      // Redirigir a la página principal después de 3 segundos
+      setTimeout(() => {
+        setLocation('/');
+      }, 3000);
+    }
   };
 
   // Si no hay un ID válido, redireccionar
