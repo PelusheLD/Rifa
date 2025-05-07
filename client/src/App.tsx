@@ -8,18 +8,23 @@ import HomePage from "@/pages/HomePage";
 import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/Dashboard";
 import { AuthProvider } from "@/lib/auth";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 function Router() {
   const [location, setLocation] = useLocation();
+  const [redirected, setRedirected] = useState(false);
 
   // Redirigir al panel de control si ya está en /admin-aut y está autenticado
+  // Utilizamos un estado para seguir si ya hemos redirigido para evitar bucles
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    if (location === '/admin-aut' && token) {
+    if (location === '/admin-aut' && token && !redirected) {
+      setRedirected(true); // Marcar como redirigido para evitar bucles
       setLocation('/admin/dashboard');
+    } else if (location !== '/admin-aut') {
+      setRedirected(false); // Resetear cuando cambiamos a otra ruta
     }
-  }, [location, setLocation]);
+  }, [location, setLocation, redirected]);
 
   return (
     <Switch>
