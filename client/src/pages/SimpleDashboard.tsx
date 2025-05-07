@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -6,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
-interface Raffle {
+// Definición de tipos más simple
+type Raffle = {
   id: number;
   title: string;
   description: string;
@@ -14,42 +14,37 @@ interface Raffle {
   totalTickets: number;
   soldTickets: number;
   imageUrl: string;
-  prizeId: string;
   endDate: string;
   status: string;
-  createdAt: string;
-  updatedAt: string;
-}
+};
 
-interface RafflesResponse {
+type APIResponse = {
   data: Raffle[];
   pagination: {
     total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
   };
-}
+};
 
-// Versión simplificada para evitar el problema de rendering infinito
+// Versión muy simplificada del dashboard para evitar bucles infinitos
 export default function SimpleDashboard() {
   const { user, logout } = useAuth();
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Query simple para obtener datos de rifas
-  const { data: rafflesResponse, isLoading } = useQuery<RafflesResponse>({
+  // Query para obtener datos básicos
+  const { data, isLoading } = useQuery<APIResponse>({
     queryKey: ['/api/raffles'],
-    staleTime: 60000, // 1 minuto de caché
+    retry: 1,
+    staleTime: 30000,
   });
-
-  // Extraemos los datos
-  const rafflesData = rafflesResponse?.data || [];
   
-  // Estadísticas simplificadas
+  // Datos seguros para mostrar
+  const raffles = data?.data || [];
+  
+  // Estadísticas básicas
   const stats = {
-    activeRaffles: rafflesData.filter((r) => r.status === 'activa').length,
-    totalRaffles: rafflesData.length,
+    activeRaffles: raffles.filter(r => r.status === 'activa').length,
+    totalRaffles: raffles.length,
     participants: 0,
     income: "0.00"
   };
@@ -168,9 +163,9 @@ export default function SimpleDashboard() {
                 <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
                 <p className="text-gray-500">Cargando rifas...</p>
               </div>
-            ) : rafflesData.length > 0 ? (
+            ) : raffles.length > 0 ? (
               <div className="space-y-4">
-                {rafflesData.slice(0, 5).map((raffle) => (
+                {raffles.slice(0, 5).map((raffle) => (
                   <div key={raffle.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="flex-shrink-0">
                       <div className="bg-primary-500 text-white p-2 rounded-lg">

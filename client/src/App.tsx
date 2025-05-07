@@ -39,18 +39,15 @@ function Router() {
 }
 
 function App() {
-  // Envolver AuthProvider en un React.Fragment para evitar problemas de tipado
+  // Simplificar la estructura para evitar problemas de tipado
   return (
     <QueryClientProvider client={queryClient}>
-      {/* No hay problemas con este componente ya que debe devolver un ReactNode */}
-      <React.Fragment>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </AuthProvider>
-      </React.Fragment>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
