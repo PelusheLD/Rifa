@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Hero() {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 to-primary-900 py-20">
+    <div className="relative overflow-hidden py-20">
       {/* Formas decorativas */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute top-0 right-0 bg-white/5 w-96 h-96 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>

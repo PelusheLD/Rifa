@@ -60,9 +60,11 @@ export default function HomePage() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-primary-600 to-primary-700 min-h-screen flex flex-col">
-      <Header />
-      <Hero />
+    <div className="min-h-screen flex flex-col">
+      <div className="bg-gradient-to-r from-primary-600 to-primary-700">
+        <Header />
+        <Hero />
+      </div>
       <FeaturedRaffles raffles={featuredRaffles} isLoading={isLoading} />
       <Footer />
     </div>
