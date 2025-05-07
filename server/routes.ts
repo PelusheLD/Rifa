@@ -1,0 +1,225 @@
+import type { Express, Request, Response } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import session from "express-session";
+import MemoryStore from "memorystore";
+import jwt from "jsonwebtoken";
+import { adminLoginSchema, insertRaffleSchema } from "@shared/schema";
+import { z } from "zod";
+
+// JWT Secret
+const JWT_SECRET = process.env.JWT_SECRET || "rifas_online_secret_jwt";
+
+// Middleware para verificar autenticación
+const authenticateJWT = (req: Request, res: Response, next: Function) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: "Token inválido o expirado" });
+      }
+
+      (req as any).user = decoded;
+      next();
+    });
+  } else {
+    res.status(401).json({ message: "No hay token proporcionado" });
+  }
+};
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Configurar session store
+  const MemorySessionStore = MemoryStore(session);
+  
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "rifas_online_secret_session",
+      resave: false,
+      saveUninitialized: false,
+      cookie: { secure: process.env.NODE_ENV === "production", maxAge: 24 * 60 * 60 * 1000 }, // 1 day
+      store: new MemorySessionStore({
+        checkPeriod: 86400000 // 24 hours
+      })
+    })
+  );
+
+  // Ruta de autenticación de administrador
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const validatedData = adminLoginSchema.parse(req.body);
+      
+      const admin = await storage.getAdminByEmail(validatedData.email);
+      
+      if (!admin) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      
+      const isPasswordValid = await storage.validatePassword(
+        validatedData.password,
+        admin.password
+      );
+      
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Credenciales incorrectas" });
+      }
+      
+      // Generar token JWT
+      const token = jwt.sign(
+        { id: admin.id, email: admin.email },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      res.json({
+        message: "Autenticación exitosa",
+        user: {
+          id: admin.id,
+          email: admin.email,
+          name: admin.name
+        },
+        token
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Datos de entrada inválidos", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Error en el servidor" });
+    }
+  });
+
+  // Verificar token
+  app.get("/api/admin/verify", authenticateJWT, (req, res) => {
+    res.json({ valid: true, user: (req as any).user });
+  });
+
+  // Rutas para rifas - CRUD
+  app.get("/api/raffles", async (req, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const filter = req.query.filter as string;
+      
+      const raffles = await storage.getRaffles(page, limit, filter);
+      const total = await storage.getTotalRaffles(filter);
+      
+      res.json({
+        data: raffles,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener las rifas" });
+    }
+  });
+
+  app.get("/api/raffles/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const raffle = await storage.getRaffle(id);
+      
+      if (!raffle) {
+        return res.status(404).json({ message: "Rifa no encontrada" });
+      }
+      
+      res.json(raffle);
+    } catch (error) {
+      res.status(500).json({ message: "Error al obtener la rifa" });
+    }
+  });
+
+  app.post("/api/raffles", authenticateJWT, async (req, res) => {
+    try {
+      const validatedData = insertRaffleSchema.parse(req.body);
+      const raffle = await storage.createRaffle(validatedData);
+      
+      res.status(201).json(raffle);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Datos de entrada inválidos", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Error al crear la rifa" });
+    }
+  });
+
+  app.put("/api/raffles/:id", authenticateJWT, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertRaffleSchema.partial().parse(req.body);
+      
+      const raffle = await storage.updateRaffle(id, validatedData);
+      
+      if (!raffle) {
+        return res.status(404).json({ message: "Rifa no encontrada" });
+      }
+      
+      res.json(raffle);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Datos de entrada inválidos", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Error al actualizar la rifa" });
+    }
+  });
+
+  app.delete("/api/raffles/:id", authenticateJWT, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteRaffle(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Rifa no encontrada" });
+      }
+      
+      res.json({ message: "Rifa eliminada correctamente" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al eliminar la rifa" });
+    }
+  });
+
+  // Crear administrador (solo para setup inicial)
+  app.post("/api/admin/setup", async (req, res) => {
+    try {
+      // Verificar si ya existe un administrador
+      const existingAdmins = await storage.getRaffles(1, 1);
+      if (existingAdmins.length > 0) {
+        return res.status(400).json({ message: "Ya existe un administrador configurado" });
+      }
+      
+      const admin = await storage.createAdmin({
+        email: "admin@rifasonline.com",
+        password: "admin123",
+        name: "Administrador"
+      });
+      
+      res.status(201).json({
+        message: "Administrador creado correctamente",
+        admin: {
+          id: admin.id,
+          email: admin.email,
+          name: admin.name
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error al configurar el administrador" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
