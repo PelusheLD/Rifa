@@ -44,15 +44,24 @@ export default function RaffleTable({
 
   const handleDelete = async (id: number) => {
     try {
+      // Mostrar mensaje de carga
+      toast({
+        title: "Procesando",
+        description: "Eliminando la rifa...",
+      });
+      
       await apiRequest("DELETE", `/api/raffles/${id}`);
+      
+      // Invalidar la caché para recargar los datos
+      await queryClient.invalidateQueries({ queryKey: ['/api/raffles'] });
+      
+      // Esperar un momento para que se complete la actualización
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       toast({
         title: "Rifa eliminada",
         description: "La rifa ha sido eliminada correctamente",
       });
-      
-      // Invalidar la caché para recargar los datos
-      queryClient.invalidateQueries({ queryKey: ['/api/raffles'] });
     } catch (error) {
       toast({
         title: "Error",

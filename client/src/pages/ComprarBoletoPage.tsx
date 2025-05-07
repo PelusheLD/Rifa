@@ -82,9 +82,9 @@ export default function ComprarBoletoPage() {
     return numbers;
   };
   
-  // Verificar si un número está vendido (simulación)
+  // Verificar si un número está vendido usando datos reales
   const isNumberSold = (number: number) => {
-    return SOLD_TICKETS.includes(number);
+    return soldTicketNumbers.includes(number);
   };
   
   // Verificar si un número está seleccionado
@@ -232,7 +232,7 @@ export default function ComprarBoletoPage() {
 
   // Si hay un error al cargar la rifa o la rifa no está activa
   useEffect(() => {
-    if (isError || (raffle && raffle.status !== 'activa')) {
+    if (isRaffleError || (raffle && raffle.status !== 'activa')) {
       toast({
         title: "No disponible",
         description: "Esta rifa no está disponible actualmente.",
@@ -240,7 +240,7 @@ export default function ComprarBoletoPage() {
       });
       setLocation('/rifas-activas');
     }
-  }, [isError, raffle, setLocation, toast]);
+  }, [isRaffleError, raffle, setLocation, toast]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -254,7 +254,7 @@ export default function ComprarBoletoPage() {
 
       <div className="py-12 bg-gray-100 flex-1">
         <div className="container mx-auto px-4">
-          {isLoading ? (
+          {isLoadingRaffle ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-700"></div>
             </div>
