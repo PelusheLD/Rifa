@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useLocation, useRoute, useRouter } from "wouter";
+import { useEffect, useState, useRef } from "react";
+import { useLocation, useRoute } from "wouter";
 import Sidebar from "@/components/admin/Sidebar";
 import ContentContainer from "@/components/admin/ContentContainer";
 import MobileHeader from "@/components/admin/MobileHeader";
@@ -14,9 +14,13 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState('dashboard');
   const { toast } = useToast();
   
-  // Comprobar si el usuario está autenticado
+  // Usamos useRef para rastrear si ya hemos realizado la redirección
+  const hasRedirected = useRef(false);
+  
+  // Comprobar si el usuario está autenticado (evitando múltiples redirecciones)
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (!loading && !isAuthenticated && !hasRedirected.current) {
+      hasRedirected.current = true;
       toast({
         title: "Acceso denegado",
         description: "Debes iniciar sesión para acceder al panel de administración.",
@@ -26,12 +30,15 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, loading, setLocation, toast]);
 
-  // Establecer la vista activa según la URL
+  // Establecer la vista activa según la URL (solo cuando params cambia)
   useEffect(() => {
-    if (params?.view) {
-      setActiveView(params.view.split('/')[0]);
+    if (params && params['view*']) {
+      const newView = params['view*'].split('/')[0];
+      if (newView !== activeView) {
+        setActiveView(newView);
+      }
     }
-  }, [params]);
+  }, [params, activeView]);
 
   // Si está cargando, mostrar indicador de carga
   if (loading) {
@@ -50,14 +57,18 @@ export default function Dashboard() {
     return null;
   }
 
+  // Funciones para manejar el menú móvil
+  const handleOpenMenu = () => setIsMobileMenuOpen(true);
+  const handleCloseMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
       <Sidebar activeView={activeView} />
       
       <MobileHeader 
         isOpen={isMobileMenuOpen} 
-        onOpenMenu={() => setIsMobileMenuOpen(true)}
-        onCloseMenu={() => setIsMobileMenuOpen(false)}
+        onOpenMenu={handleOpenMenu}
+        onCloseMenu={handleCloseMenu}
         activeView={activeView}
       />
       

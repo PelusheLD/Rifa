@@ -38,10 +38,11 @@ export default function ContentContainer({ activeView }: ContentContainerProps) 
   const { user } = useAuth();
   const [viewTitle, setViewTitle] = useState("Dashboard");
 
-  // Obtener estadísticas para el dashboard
-  const { data: rafflesData } = useQuery<RafflesResponse>({
+  // Obtener estadísticas para el dashboard con manejo mejorado de datos
+  const { data: rafflesData, isLoading: rafflesLoading } = useQuery<RafflesResponse>({
     queryKey: ['/api/raffles'],
     enabled: activeView === 'dashboard',
+    staleTime: 60000, // 1 minuto de caché para evitar consultas repetitivas
   });
 
   // Establecer el título de la vista actual
