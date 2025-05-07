@@ -30,7 +30,7 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
   };
 
   return (
-    <div className="bg-white py-16">
+    <div className="bg-gray-100 py-16">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <h2 className="text-4xl font-bold text-gray-800 mb-4 relative inline-block">
