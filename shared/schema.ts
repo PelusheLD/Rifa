@@ -26,6 +26,7 @@ export const raffles = pgTable("raffles", {
   totalTickets: integer("total_tickets").notNull(), // Cantidad total de números
   soldTickets: integer("sold_tickets").default(0), // Números vendidos (se actualizará automáticamente)
   imageUrl: text("image_url").notNull(), // Foto
+  prizeId: text("prize_id"), // ID o código único del premio
   endDate: timestamp("end_date").notNull(), // Fecha de sorteo
   status: statusEnum("status").notNull().default('activa'),
   createdAt: timestamp("created_at").defaultNow(), // Fecha de creación
@@ -71,6 +72,7 @@ export const insertRaffleSchema = createInsertSchema(raffles).pick({
   price: true,
   totalTickets: true,
   imageUrl: true,
+  prizeId: true,
   endDate: true,
   status: true,
 });
