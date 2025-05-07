@@ -37,7 +37,7 @@ export async function deleteRaffle(id: number) {
 }
 
 // Función para iniciar sesión de administrador
-export async function loginAdmin(credentials: { email: string; password: string }) {
+export async function loginAdmin(credentials: { username: string; password: string }) {
   const response = await apiRequest("POST", "/api/admin/login", credentials);
   return response.json();
 }

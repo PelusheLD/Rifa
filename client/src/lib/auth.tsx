@@ -1,9 +1,9 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { apiRequest } from "./queryClient";
 
 interface User {
   id: number;
-  email: string;
+  username: string;
   name: string;
 }
 

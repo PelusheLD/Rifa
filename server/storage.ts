@@ -13,7 +13,7 @@ import bcrypt from "bcryptjs";
 export interface IStorage {
   // Admin methods
   getAdmin(id: number): Promise<Admin | undefined>;
-  getAdminByEmail(email: string): Promise<Admin | undefined>;
+  getAdminByUsername(username: string): Promise<Admin | undefined>;
   createAdmin(admin: InsertAdmin): Promise<Admin>;
   validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean>;
   
@@ -49,8 +49,8 @@ export class DatabaseStorage implements IStorage {
     return admin;
   }
 
-  async getAdminByEmail(email: string): Promise<Admin | undefined> {
-    const [admin] = await db.select().from(admins).where(eq(admins.email, email));
+  async getAdminByUsername(username: string): Promise<Admin | undefined> {
+    const [admin] = await db.select().from(admins).where(eq(admins.username, username));
     return admin;
   }
 
