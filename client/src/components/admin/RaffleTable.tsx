@@ -5,8 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type RaffleData = {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  totalTickets: number;
+  soldTickets: number;
+  imageUrl: string;
+  prizeId: string;
+  endDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 interface RaffleTableProps {
-  raffles: any[];
+  raffles: RaffleData[];
   pagination: {
     total: number;
     page: number;
@@ -14,7 +29,7 @@ interface RaffleTableProps {
     totalPages: number;
   };
   isLoading: boolean;
-  onEdit: (raffle: any) => void;
+  onEdit: (raffle: RaffleData) => void;
   onPageChange: (page: number) => void;
 }
 

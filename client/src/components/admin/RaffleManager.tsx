@@ -7,9 +7,34 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 
+type RaffleData = {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  totalTickets: number;
+  soldTickets: number;
+  imageUrl: string;
+  prizeId: string;
+  endDate: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+interface RafflesResponse {
+  data: RaffleData[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export default function RaffleManager() {
   const [showForm, setShowForm] = useState(false);
-  const [editingRaffle, setEditingRaffle] = useState<any>(null);
+  const [editingRaffle, setEditingRaffle] = useState<RaffleData | null>(null);
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
@@ -26,7 +51,7 @@ export default function RaffleManager() {
     return query;
   }, [page, limit, statusFilter, filter]);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch } = useQuery<RafflesResponse>({
     queryKey: [queryString],
   });
 
@@ -35,7 +60,7 @@ export default function RaffleManager() {
     setShowForm(true);
   };
 
-  const handleEdit = (raffle: any) => {
+  const handleEdit = (raffle: RaffleData) => {
     setEditingRaffle(raffle);
     setShowForm(true);
   };
