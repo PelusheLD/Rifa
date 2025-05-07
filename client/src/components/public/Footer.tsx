@@ -1,4 +1,7 @@
+import { useLocation } from "wouter";
+
 export default function Footer() {
+  const [_, setLocation] = useLocation();
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="container mx-auto px-4">
@@ -21,10 +24,10 @@ export default function Footer() {
             <div>
               <h4 className="text-lg font-bold mb-4 text-primary-300">Enlaces</h4>
               <ul className="space-y-3">
-                <li><a href="#" className="text-gray-300 hover:text-primary-300 transition-colors">Inicio</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-primary-300 transition-colors">Rifas activas</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-primary-300 transition-colors">Ganadores</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-primary-300 transition-colors">Cómo participar</a></li>
+                <li><a href="/" className="text-gray-300 hover:text-primary-300 transition-colors" onClick={(e) => { e.preventDefault(); setLocation('/'); }}>Inicio</a></li>
+                <li><a href="/rifas-activas" className="text-gray-300 hover:text-primary-300 transition-colors" onClick={(e) => { e.preventDefault(); setLocation('/rifas-activas'); }}>Rifas activas</a></li>
+                <li><a href="/ganadores" className="text-gray-300 hover:text-primary-300 transition-colors" onClick={(e) => { e.preventDefault(); setLocation('/ganadores'); }}>Ganadores</a></li>
+                <li><a href="/como-participar" className="text-gray-300 hover:text-primary-300 transition-colors" onClick={(e) => { e.preventDefault(); setLocation('/como-participar'); }}>Cómo participar</a></li>
               </ul>
             </div>
             

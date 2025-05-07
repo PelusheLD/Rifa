@@ -124,6 +124,7 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
           <Button 
             className="px-8 py-3 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all border border-blue-500 shadow-md"
             size="lg"
+            onClick={() => window.location.href = "/rifas-activas"}
           >
             Ver todas las rifas disponibles
           </Button>
