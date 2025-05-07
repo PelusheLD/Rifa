@@ -24,8 +24,8 @@ type RaffleData = {
   createdAt: string;
 };
 
-// Simulación de boletos ocupados/vendidos para demostración
-const SOLD_TICKETS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+// Ya no usamos simulación de boletos ocupados/vendidos
+// Obtendremos datos reales de la API
 
 export default function ComprarBoletoPage() {
   const params = useParams();
@@ -49,11 +49,21 @@ export default function ComprarBoletoPage() {
   });
 
   // Obtener detalles de la rifa específica
-  const { data: raffle, isLoading, isError } = useQuery<RaffleData>({
+  const { data: raffle, isLoading: isLoadingRaffle, isError: isRaffleError } = useQuery<RaffleData>({
     queryKey: [`/api/raffles/${raffleId}`],
     staleTime: 60000, // 1 minuto
     enabled: !!raffleId,
   });
+  
+  // Obtener boletos vendidos de la rifa
+  const { data: soldTicketsData, isLoading: isLoadingSoldTickets } = useQuery<any[]>({
+    queryKey: [`/api/raffles/${raffleId}/tickets`],
+    staleTime: 30000, // 30 segundos
+    enabled: !!raffleId,
+  });
+  
+  // Extraer los números de boletos vendidos
+  const soldTicketNumbers = soldTicketsData?.map(ticket => ticket.number) || [];
 
   // Calcular números totales y páginas
   const totalNumbers = raffle?.totalTickets || 0;
