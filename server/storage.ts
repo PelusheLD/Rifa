@@ -1,13 +1,12 @@
 import { 
-  admins, raffles, participants, tickets, winners,
+  admins, raffles, tickets, winners,
   type Admin, type InsertAdmin,
   type Raffle, type InsertRaffle,
-  type Participant, type InsertParticipant,
   type Ticket, type InsertTicket,
   type Winner, type InsertWinner
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like } from "drizzle-orm";
+import { eq, and, desc, asc, like, inArray } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 export interface IStorage {
@@ -25,15 +24,12 @@ export interface IStorage {
   updateRaffle(id: number, raffle: Partial<InsertRaffle>): Promise<Raffle | undefined>;
   deleteRaffle(id: number): Promise<boolean>;
   
-  // Participant methods
-  getParticipant(id: number): Promise<Participant | undefined>;
-  getParticipants(page?: number, limit?: number): Promise<Participant[]>;
-  createParticipant(participant: InsertParticipant): Promise<Participant>;
-  
   // Ticket methods
   getTicket(id: number): Promise<Ticket | undefined>;
   getTicketsForRaffle(raffleId: number): Promise<Ticket[]>;
   createTicket(ticket: InsertTicket): Promise<Ticket>;
+  getTicketsByNumber(raffleId: number, numbers: number[]): Promise<Ticket[]>;
+  getAvailableTickets(raffleId: number): Promise<number[]>;
   
   // Winner methods
   getWinner(id: number): Promise<Winner | undefined>;
@@ -81,24 +77,23 @@ export class DatabaseStorage implements IStorage {
       const offset = (page - 1) * limit;
       
       // Base query
-      let query = db.select().from(raffles);
+      let baseQuery = db.select().from(raffles);
       
       // Aplicar filtro si existe
       if (filter) {
         if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
-          query = query.where(eq(raffles.status, filter));
+          baseQuery = db.select().from(raffles).where(eq(raffles.status, filter));
         } else {
-          query = query.where(like(raffles.title, `%${filter}%`));
+          baseQuery = db.select().from(raffles).where(like(raffles.title, `%${filter}%`));
         }
       }
       
-      // Aplicar orden, límite y offset
-      query = query.orderBy(desc(raffles.createdAt))
-                  .limit(limit)
-                  .offset(offset);
-      
+      // Ejecutar con orden, límite y offset
       console.log("Ejecutando query de rifas");
-      const result = await query;
+      const result = await baseQuery
+        .orderBy(desc(raffles.createdAt))
+        .limit(limit)
+        .offset(offset);
       console.log("Query ejecutado exitosamente");
       
       return result;
@@ -110,19 +105,20 @@ export class DatabaseStorage implements IStorage {
 
   async getTotalRaffles(filter?: string): Promise<number> {
     try {
-      // En lugar de usar funciones de conteo, vamos a obtener todos los registros y contar
-      let query = db.select().from(raffles);
+      // Base query para contar
+      let baseQuery = db.select().from(raffles);
       
+      // Aplicar filtro si existe
       if (filter) {
         if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
-          query = query.where(eq(raffles.status, filter));
+          baseQuery = db.select().from(raffles).where(eq(raffles.status, filter));
         } else {
-          query = query.where(like(raffles.title, `%${filter}%`));
+          baseQuery = db.select().from(raffles).where(like(raffles.title, `%${filter}%`));
         }
       }
       
       console.log("Ejecutando query de conteo");
-      const results = await query;
+      const results = await baseQuery;
       console.log("Query de conteo ejecutado exitosamente, total:", results.length);
       
       return results.length;
@@ -157,30 +153,6 @@ export class DatabaseStorage implements IStorage {
     return !!deleted;
   }
 
-  // Participant methods
-  async getParticipant(id: number): Promise<Participant | undefined> {
-    const [participant] = await db.select().from(participants).where(eq(participants.id, id));
-    return participant;
-  }
-
-  async getParticipants(page = 1, limit = 10): Promise<Participant[]> {
-    const offset = (page - 1) * limit;
-    return await db
-      .select()
-      .from(participants)
-      .orderBy(desc(participants.createdAt))
-      .limit(limit)
-      .offset(offset);
-  }
-
-  async createParticipant(participant: InsertParticipant): Promise<Participant> {
-    const [newParticipant] = await db
-      .insert(participants)
-      .values(participant)
-      .returning();
-    return newParticipant;
-  }
-
   // Ticket methods
   async getTicket(id: number): Promise<Ticket | undefined> {
     const [ticket] = await db.select().from(tickets).where(eq(tickets.id, id));
@@ -192,7 +164,47 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(tickets)
       .where(eq(tickets.raffleId, raffleId))
-      .orderBy(asc(tickets.ticketNumber));
+      .orderBy(asc(tickets.number));
+  }
+
+  async getTicketsByNumber(raffleId: number, numbers: number[]): Promise<Ticket[]> {
+    return await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.raffleId, raffleId),
+          // Filtrar por los números en la lista
+          tickets.number.in(numbers)
+        )
+      );
+  }
+
+  async getAvailableTickets(raffleId: number): Promise<number[]> {
+    // Obtener la rifa para saber cuántos números tiene en total
+    const raffle = await this.getRaffle(raffleId);
+    if (!raffle) {
+      return [];
+    }
+
+    // Obtener todos los números comprados de esta rifa
+    const soldTickets = await db
+      .select({ number: tickets.number })
+      .from(tickets)
+      .where(eq(tickets.raffleId, raffleId));
+    
+    // Crear un conjunto con los números vendidos para búsqueda rápida
+    const soldNumbersSet = new Set(soldTickets.map(t => t.number));
+    
+    // Generar el array de números disponibles
+    const availableNumbers: number[] = [];
+    for (let i = 1; i <= raffle.totalTickets; i++) {
+      if (!soldNumbersSet.has(i)) {
+        availableNumbers.push(i);
+      }
+    }
+    
+    return availableNumbers;
   }
 
   async createTicket(ticket: InsertTicket): Promise<Ticket> {

@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious, PaginationLink } from "@/components/ui/pagination";
 
 type RaffleData = {
   id: number;
@@ -18,12 +19,13 @@ type RaffleData = {
   totalTickets: number;
   soldTickets: number;
   imageUrl: string;
-  prizeId: string;
   endDate: string;
   status: string;
   createdAt: string;
-  updatedAt: string;
 };
+
+// Simulación de boletos ocupados/vendidos para demostración
+const SOLD_TICKETS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
 export default function ComprarBoletoPage() {
   const params = useParams();
@@ -31,12 +33,19 @@ export default function ComprarBoletoPage() {
   const { toast } = useToast();
   const raffleId = params.id ? parseInt(params.id) : 0;
   
-  const [numTickets, setNumTickets] = useState(1);
+  // Estado para la paginación de números
+  const [currentPage, setCurrentPage] = useState(1);
+  const numbersPerPage = 1000; // Mostrar 1000 números por página
+  
+  // Estado para los números seleccionados
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+  
+  // Estado para la información del comprador
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    address: ''
+    cedula: ''
   });
 
   // Obtener detalles de la rifa específica
@@ -46,38 +55,61 @@ export default function ComprarBoletoPage() {
     enabled: !!raffleId,
   });
 
+  // Calcular números totales y páginas
+  const totalNumbers = raffle?.totalTickets || 0;
+  const totalPages = Math.ceil(totalNumbers / numbersPerPage);
+  
+  // Calcular el rango de números para la página actual
+  const startNumber = (currentPage - 1) * numbersPerPage + 1;
+  const endNumber = Math.min(currentPage * numbersPerPage, totalNumbers);
+  
+  // Generar el rango de números para la página actual
+  const getNumbersRange = () => {
+    const numbers = [];
+    for (let i = startNumber; i <= endNumber; i++) {
+      numbers.push(i);
+    }
+    return numbers;
+  };
+  
+  // Verificar si un número está vendido (simulación)
+  const isNumberSold = (number: number) => {
+    return SOLD_TICKETS.includes(number);
+  };
+  
+  // Verificar si un número está seleccionado
+  const isNumberSelected = (number: number) => {
+    return selectedNumbers.includes(number);
+  };
+  
+  // Manejar la selección de un número
+  const toggleNumberSelection = (number: number) => {
+    if (isNumberSold(number)) return; // No permitir seleccionar números ya vendidos
+    
+    if (isNumberSelected(number)) {
+      // Deseleccionar el número
+      setSelectedNumbers(prev => prev.filter(n => n !== number));
+    } else {
+      // Seleccionar el número
+      setSelectedNumbers(prev => [...prev, number]);
+    }
+  };
+
+  // Manejar cambio de página
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   // Manejar cambios en el formulario
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Manejar cambio en el número de boletos
-  const handleTicketChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (value > 0 && value <= 10) {
-      setNumTickets(value);
-    }
-  };
-
-  // Incrementar cantidad de boletos
-  const incrementTickets = () => {
-    if (numTickets < 10) {
-      setNumTickets(prev => prev + 1);
-    }
-  };
-
-  // Decrementar cantidad de boletos
-  const decrementTickets = () => {
-    if (numTickets > 1) {
-      setNumTickets(prev => prev - 1);
-    }
-  };
-
   // Calcular el precio total
   const calculateTotal = () => {
     if (!raffle) return 0;
-    return raffle.price * numTickets;
+    return raffle.price * selectedNumbers.length;
   };
 
   // Manejar el envío del formulario
@@ -85,7 +117,7 @@ export default function ComprarBoletoPage() {
     e.preventDefault();
     
     // Validación simple
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (!formData.name || !formData.email || !formData.phone || !formData.cedula) {
       toast({
         title: "Error en el formulario",
         description: "Por favor, completa todos los campos obligatorios.",
@@ -94,18 +126,31 @@ export default function ComprarBoletoPage() {
       return;
     }
     
-    // Aquí normalmente enviarías los datos al servidor
-    // Pero para este ejemplo, solo mostraremos un mensaje
+    if (selectedNumbers.length === 0) {
+      toast({
+        title: "No hay números seleccionados",
+        description: "Por favor, selecciona al menos un número para participar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Aquí se enviarían los datos a WhatsApp para finalizar la compra
+    const message = `Hola, quiero apartar los siguientes números para la rifa "${raffle?.title}": ${selectedNumbers.join(', ')}. Mis datos: Nombre: ${formData.name}, Cédula: ${formData.cedula}, Teléfono: ${formData.phone}, Email: ${formData.email}. Total a pagar: $${calculateTotal()} MXN`;
+    
+    // Encode el mensaje para URL de WhatsApp
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/+5212345678?text=${encodedMessage}`;
+    
+    // Abrir WhatsApp en nueva ventana
+    window.open(whatsappUrl, '_blank');
+    
+    // Mostrar mensaje de éxito
     toast({
-      title: "¡Compra exitosa!",
-      description: `Has comprado ${numTickets} boleto(s) para la rifa "${raffle?.title}". Te enviaremos un correo con los detalles.`,
+      title: "¡Números apartados!",
+      description: `Has apartado ${selectedNumbers.length} número(s) para la rifa "${raffle?.title}". Se abrirá WhatsApp para finalizar tu compra.`,
       variant: "default"
     });
-    
-    // Redirigir a la página principal después de 2 segundos
-    setTimeout(() => {
-      setLocation('/');
-    }, 2000);
   };
 
   // Si no hay un ID válido, redireccionar
@@ -218,6 +263,18 @@ export default function ComprarBoletoPage() {
                               />
                             </div>
                             <div>
+                              <Label htmlFor="cedula">Cédula *</Label>
+                              <Input 
+                                id="cedula"
+                                name="cedula"
+                                placeholder="Tu número de cédula"
+                                value={formData.cedula}
+                                onChange={handleFormChange}
+                                required
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
                               <Label htmlFor="email">Correo electrónico *</Label>
                               <Input 
                                 id="email"
@@ -242,55 +299,95 @@ export default function ComprarBoletoPage() {
                                 className="mt-1"
                               />
                             </div>
-                            <div>
-                              <Label htmlFor="address">Dirección (opcional)</Label>
-                              <Input 
-                                id="address"
-                                name="address"
-                                placeholder="Tu dirección"
-                                value={formData.address}
-                                onChange={handleFormChange}
-                                className="mt-1"
-                              />
-                            </div>
                           </div>
                         </div>
                         
                         <Separator />
                         
-                        {/* Cantidad de boletos */}
+                        {/* Selección de números */}
                         <div>
-                          <h4 className="text-lg font-semibold text-gray-700 mb-4">Boletos</h4>
-                          <div className="flex items-center space-x-4">
-                            <Label htmlFor="tickets">Cantidad:</Label>
+                          <h4 className="text-lg font-semibold text-gray-700 mb-4">Selecciona tus números</h4>
+                          
+                          {/* Paginación superior */}
+                          <div className="mb-4">
+                            <Pagination>
+                              <PaginationContent>
+                                <PaginationItem>
+                                  <PaginationPrevious 
+                                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                                    className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                                  />
+                                </PaginationItem>
+                                {Array.from({ length: Math.min(5, totalPages) }).map((_, idx) => {
+                                  const page = currentPage <= 3
+                                    ? idx + 1
+                                    : currentPage >= totalPages - 2
+                                      ? totalPages - 4 + idx
+                                      : currentPage - 2 + idx;
+                                      
+                                  if (page <= totalPages && page > 0) {
+                                    return (
+                                      <PaginationItem key={page}>
+                                        <PaginationLink 
+                                          isActive={currentPage === page}
+                                          onClick={() => handlePageChange(page)}
+                                        >
+                                          {page}
+                                        </PaginationLink>
+                                      </PaginationItem>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                                <PaginationItem>
+                                  <PaginationNext 
+                                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                                    className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                                  />
+                                </PaginationItem>
+                              </PaginationContent>
+                            </Pagination>
+                            <p className="text-center text-sm text-gray-500 mt-2">
+                              Mostrando números del {startNumber} al {endNumber} de {totalNumbers}
+                            </p>
+                          </div>
+                          
+                          {/* Cuadrícula de números */}
+                          <div className="grid grid-cols-10 sm:grid-cols-20 md:grid-cols-20 lg:grid-cols-25 gap-1 mb-4">
+                            {getNumbersRange().map(number => (
+                              <button
+                                key={number}
+                                type="button"
+                                className={`
+                                  w-8 h-8 flex items-center justify-center text-xs rounded
+                                  ${isNumberSold(number) 
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                    : isNumberSelected(number)
+                                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                  }
+                                `}
+                                onClick={() => toggleNumberSelection(number)}
+                                disabled={isNumberSold(number)}
+                              >
+                                {number}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-2 mb-4">
                             <div className="flex items-center">
-                              <Button 
-                                type="button"
-                                onClick={decrementTickets}
-                                className="h-10 w-10 rounded-l-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                variant="ghost"
-                              >
-                                -
-                              </Button>
-                              <Input 
-                                id="tickets"
-                                type="number"
-                                value={numTickets}
-                                onChange={handleTicketChange}
-                                min="1"
-                                max="10"
-                                className="h-10 w-16 text-center border-y border-gray-200"
-                              />
-                              <Button 
-                                type="button"
-                                onClick={incrementTickets}
-                                className="h-10 w-10 rounded-r-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                variant="ghost"
-                              >
-                                +
-                              </Button>
+                              <div className="w-4 h-4 bg-white border border-gray-300 mr-1"></div>
+                              <span className="text-xs text-gray-600">Disponible</span>
                             </div>
-                            <span className="text-gray-500 text-sm">(Máximo 10 boletos por compra)</span>
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-blue-600 mr-1"></div>
+                              <span className="text-xs text-gray-600">Seleccionado</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-gray-200 mr-1"></div>
+                              <span className="text-xs text-gray-600">Vendido</span>
+                            </div>
                           </div>
                         </div>
                         
@@ -302,12 +399,26 @@ export default function ComprarBoletoPage() {
                           <div className="space-y-2">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Precio por boleto:</span>
-                              <span>${raffle.price} MXN</span>
+                              <span>${raffle?.price} MXN</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Cantidad de boletos:</span>
-                              <span>{numTickets}</span>
+                              <span className="text-gray-600">Números seleccionados:</span>
+                              <span>{selectedNumbers.length}</span>
                             </div>
+                            
+                            {selectedNumbers.length > 0 && (
+                              <div className="pt-2">
+                                <span className="text-gray-600 block mb-1">Tus números:</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {selectedNumbers.map(number => (
+                                    <span key={number} className="inline-flex items-center justify-center w-7 h-7 text-xs rounded bg-blue-100 text-blue-700">
+                                      {number}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
                             <Separator className="my-2" />
                             <div className="flex justify-between font-bold">
                               <span className="text-gray-800">Total:</span>
