@@ -19,7 +19,7 @@ const formSchema = z.object({
   price: z.number().min(1, "El precio debe ser mayor que 0"),
   totalTickets: z.number().min(1, "Debe haber al menos 1 boleto"),
   imageUrl: z.string().url("Debe ser una URL válida"),
-  prizeId: z.string().min(1, "El ID del premio es requerido"),
+  prizeId: z.string().optional(), // Hacemos este campo opcional para evitar problemas con la BD actual
   endDate: z.string().refine(val => !isNaN(Date.parse(val)), "Fecha inválida"),
   status: z.enum(["activa", "proxima", "finalizada"])
 });

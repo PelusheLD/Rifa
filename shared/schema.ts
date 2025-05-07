@@ -72,9 +72,10 @@ export const insertRaffleSchema = createInsertSchema(raffles).pick({
   price: true,
   totalTickets: true,
   imageUrl: true,
-  prizeId: true,
   endDate: true,
   status: true,
+}).extend({
+  prizeId: z.string().optional(),
 });
 
 export type InsertRaffle = z.infer<typeof insertRaffleSchema>;
