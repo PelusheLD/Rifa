@@ -53,11 +53,12 @@ export default function RaffleForm({ raffle, onClose }: RaffleFormProps) {
     setLoading(true);
     try {
       // Asegurarse de que los valores numéricos sean realmente números
+      // y que la fecha esté en formato ISO
       const formattedData = {
         ...data,
         price: Number(data.price),
         totalTickets: Number(data.totalTickets),
-        endDate: new Date(data.endDate).toISOString()
+        endDate: data.endDate // Ya enviamos como string, el esquema se encargará de transformarlo
       };
 
       if (isEditing) {
