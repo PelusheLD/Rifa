@@ -126,9 +126,10 @@ export default function RaffleForm({ raffle, onClose }: RaffleFormProps) {
                   <FormItem>
                     <FormLabel>ID del Premio</FormLabel>
                     <FormControl>
-                      <Input placeholder="ID del premio" {...field} />
+                      <Input placeholder="Nombre o código del premio" {...field} />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500 mt-1">Identificador único para el premio de esta rifa (ej: "Auto2025", "ViajeCancun")</p>
                   </FormItem>
                 )}
               />
@@ -251,7 +252,7 @@ export default function RaffleForm({ raffle, onClose }: RaffleFormProps) {
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="bg-primary-600 hover:bg-primary-700"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {loading ? (
                   <>

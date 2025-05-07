@@ -98,7 +98,7 @@ export default function RaffleManager() {
             <h2 className="text-2xl font-bold text-gray-900">Gestión de Rifas</h2>
             <Button 
               onClick={handleCreate}
-              className="bg-primary-600 hover:bg-primary-700 text-white font-medium"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
             >
               <i className="fas fa-plus mr-2"></i>
               Nueva Rifa
