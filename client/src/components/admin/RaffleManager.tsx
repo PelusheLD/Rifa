@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import RaffleTable from "./RaffleTable";
 import RaffleForm from "./RaffleForm";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,16 @@ export default function RaffleManager() {
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  // Construir la consulta con filtros
-  let queryString = `/api/raffles?page=${page}&limit=${limit}`;
-  if (statusFilter !== "all") {
-    queryString += `&filter=${statusFilter}`;
-  } else if (filter) {
-    queryString += `&filter=${filter}`;
-  }
+  // Usar useMemo para construir la queryString solo cuando las dependencias cambien
+  const queryString = useMemo(() => {
+    let query = `/api/raffles?page=${page}&limit=${limit}`;
+    if (statusFilter !== "all") {
+      query += `&filter=${statusFilter}`;
+    } else if (filter) {
+      query += `&filter=${filter}`;
+    }
+    return query;
+  }, [page, limit, statusFilter, filter]);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: [queryString],
