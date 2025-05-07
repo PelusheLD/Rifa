@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
@@ -140,21 +141,8 @@ function TicketsListView({ raffleId, onBack }: { raffleId: number, onBack: () =>
   );
 }
 
-// Componente para la sección de Participantes
-function ParticipantesView() {
-  const [selectedRaffleId, setSelectedRaffleId] = useState<number | null>(null);
-  
-  // Si hay una rifa seleccionada, mostrar sus tickets
-  if (selectedRaffleId) {
-    return (
-      <TicketsListView 
-        raffleId={selectedRaffleId}
-        onBack={() => setSelectedRaffleId(null)}
-      />
-    );
-  }
-  
-  // Si no hay rifa seleccionada, mostrar la lista de rifas disponibles
+// Componente para mostrar la lista de rifas
+function RaffleListView({ onSelectRaffle }: { onSelectRaffle: (id: number) => void }) {
   const { data: raffles, isLoading } = useQuery<Raffle[]>({
     queryKey: ['/api/raffles'],
     retry: 1,
@@ -175,7 +163,7 @@ function ParticipantesView() {
       ) : raffles && raffles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {raffles.map(raffle => (
-            <Card key={raffle.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedRaffleId(raffle.id)}>
+            <Card key={raffle.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onSelectRaffle(raffle.id)}>
               <CardContent className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -215,6 +203,25 @@ function ParticipantesView() {
         </div>
       )}
     </div>
+  );
+}
+
+// Componente para la sección de Participantes
+function ParticipantesView() {
+  const [selectedRaffleId, setSelectedRaffleId] = useState<number | null>(null);
+  
+  // Renderizado condicional basado en si hay una rifa seleccionada o no
+  return (
+    <>
+      {selectedRaffleId ? (
+        <TicketsListView 
+          raffleId={selectedRaffleId}
+          onBack={() => setSelectedRaffleId(null)}
+        />
+      ) : (
+        <RaffleListView onSelectRaffle={setSelectedRaffleId} />
+      )}
+    </>
   );
 }
 
