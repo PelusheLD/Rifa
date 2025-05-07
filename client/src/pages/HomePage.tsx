@@ -60,8 +60,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700">
+    <div className="min-h-screen flex flex-col bg-white">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-900">
         <Header />
         <Hero />
       </div>

@@ -25,15 +25,14 @@ export default function Hero() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
-                className="bg-white text-primary-700 hover:bg-gray-100 transition-all px-8 py-3 rounded-full text-lg font-semibold shadow-lg"
+                className="bg-yellow-400 text-blue-900 hover:bg-yellow-300 transition-all px-8 py-3 rounded-full text-lg font-semibold shadow-lg border-2 border-yellow-300"
                 size="lg"
               >
                 Ver rifas activas
               </Button>
               <Button 
-                className="backdrop-blur-sm bg-white/10 text-white hover:bg-white/20 transition-all px-8 py-3 rounded-full text-lg font-semibold border border-white/30"
+                className="bg-white/90 text-blue-900 hover:bg-white transition-all px-8 py-3 rounded-full text-lg font-semibold shadow-lg"
                 size="lg"
-                variant="outline"
               >
                 ¿Cómo participar?
               </Button>

@@ -99,7 +99,7 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
                   </div>
                 </CardContent>
                 <CardFooter className="p-6 pt-0">
-                  <Button className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 rounded-lg transition-all">
+                  <Button className="w-full bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-all border border-blue-600">
                     Comprar boleto
                   </Button>
                 </CardFooter>
@@ -119,8 +119,7 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
         
         <div className="mt-16 text-center">
           <Button 
-            className="px-8 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-gray-50 transition-all border-2 border-primary-600"
-            variant="outline"
+            className="px-8 py-3 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all border border-blue-500 shadow-md"
             size="lg"
           >
             Ver todas las rifas disponibles
