@@ -6,7 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/HomePage";
 import AdminLogin from "@/pages/AdminLogin";
-import Dashboard from "@/pages/Dashboard";
+// Importamos el Dashboard simplificado para evitar problemas de recursión
+import SimpleDashboard from "@/pages/SimpleDashboard";
 import { AuthProvider } from "@/lib/auth";
 import React, { useEffect, useState } from "react";
 
@@ -30,21 +31,26 @@ function Router() {
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/admin-aut" component={AdminLogin} />
-      <Route path="/admin/:view*" component={Dashboard} />
+      {/* Usar la versión simplificada del dashboard para todas las rutas admin */}
+      <Route path="/admin/:view*" component={SimpleDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
+  // Envolver AuthProvider en un React.Fragment para evitar problemas de tipado
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
+      {/* No hay problemas con este componente ya que debe devolver un ReactNode */}
+      <React.Fragment>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </AuthProvider>
+      </React.Fragment>
     </QueryClientProvider>
   );
 }

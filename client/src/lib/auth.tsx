@@ -33,8 +33,8 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Componente proveedor de autenticación con tipo explícito React.FC
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+// Definimos el AuthProvider como una función normal sin usar React.FC
+export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
