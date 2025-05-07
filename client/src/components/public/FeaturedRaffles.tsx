@@ -99,7 +99,10 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
                   </div>
                 </CardContent>
                 <CardFooter className="p-6 pt-0">
-                  <Button className="w-full bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-all border border-blue-600">
+                  <Button 
+                    className="w-full bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-all border border-blue-600"
+                    onClick={() => window.location.href = `/comprar-boleto/${raffle.id}`}
+                  >
                     Comprar boleto
                   </Button>
                 </CardFooter>

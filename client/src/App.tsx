@@ -8,6 +8,11 @@ import HomePage from "@/pages/HomePage";
 import AdminLogin from "@/pages/AdminLogin";
 // Importamos el Dashboard simplificado para evitar problemas de recursión
 import SimpleDashboard from "@/pages/SimpleDashboard";
+// Importamos las nuevas páginas
+import RifasActivasPage from "@/pages/RifasActivasPage";
+import ComprarBoletoPage from "@/pages/ComprarBoletoPage";
+import ComoParticiparPage from "@/pages/ComoParticiparPage";
+import GanadoresPage from "@/pages/GanadoresPage";
 import { AuthProvider } from "@/lib/auth";
 import React, { useEffect, useState } from "react";
 
@@ -31,6 +36,14 @@ function Router() {
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/admin-aut" component={AdminLogin} />
+      {/* Ruta para ver rifas activas */}
+      <Route path="/rifas-activas" component={RifasActivasPage} />
+      {/* Ruta para comprar boletos */}
+      <Route path="/comprar-boleto/:id" component={ComprarBoletoPage} />
+      {/* Ruta para ver cómo participar */}
+      <Route path="/como-participar" component={ComoParticiparPage} />
+      {/* Ruta para ver ganadores */}
+      <Route path="/ganadores" component={GanadoresPage} />
       {/* Usar la versión simplificada del dashboard para todas las rutas admin */}
       <Route path="/admin/:view*" component={SimpleDashboard} />
       <Route component={NotFound} />

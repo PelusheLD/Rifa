@@ -27,12 +27,14 @@ export default function Hero() {
               <Button 
                 className="bg-yellow-400 text-blue-900 hover:bg-yellow-300 transition-all px-8 py-3 rounded-full text-lg font-semibold shadow-lg border-2 border-yellow-300"
                 size="lg"
+                onClick={() => window.location.href = "/rifas-activas"}
               >
                 Ver rifas activas
               </Button>
               <Button 
                 className="bg-white/90 text-blue-900 hover:bg-white transition-all px-8 py-3 rounded-full text-lg font-semibold shadow-lg"
                 size="lg"
+                onClick={() => window.location.href = "/como-participar"}
               >
                 ¿Cómo participar?
               </Button>

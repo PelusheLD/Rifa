@@ -20,10 +20,46 @@ export default function Header() {
         
         <div className="hidden md:flex items-center space-x-8">
           <nav className="flex items-center space-x-6">
-            <a href="#" className="text-white hover:text-yellow-300 transition-colors text-sm font-medium">Inicio</a>
-            <a href="#" className="text-white hover:text-yellow-300 transition-colors text-sm font-medium">Rifas Activas</a>
-            <a href="#" className="text-white hover:text-yellow-300 transition-colors text-sm font-medium">Ganadores</a>
-            <a href="#" className="text-white hover:text-yellow-300 transition-colors text-sm font-medium">Contacto</a>
+            <a 
+              href="/" 
+              className="text-white hover:text-yellow-300 transition-colors text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                setLocation('/');
+              }}
+            >
+              Inicio
+            </a>
+            <a 
+              href="/rifas-activas" 
+              className="text-white hover:text-yellow-300 transition-colors text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                setLocation('/rifas-activas');
+              }}
+            >
+              Rifas Activas
+            </a>
+            <a 
+              href="/ganadores" 
+              className="text-white hover:text-yellow-300 transition-colors text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                setLocation('/ganadores');
+              }}
+            >
+              Ganadores
+            </a>
+            <a 
+              href="/como-participar" 
+              className="text-white hover:text-yellow-300 transition-colors text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                setLocation('/como-participar');
+              }}
+            >
+              Cómo Participar
+            </a>
           </nav>
           
           <div className="flex items-center space-x-4">
