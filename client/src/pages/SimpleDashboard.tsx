@@ -52,17 +52,36 @@ type Winner = {
   claimed: boolean;
 };
 
-// Componente para la sección de Participantes
-function ParticipantesView() {
+// Componente para mostrar los tickets de una rifa específica
+function TicketsListView({ raffleId, onBack }: { raffleId: number, onBack: () => void }) {
   const { data: tickets, isLoading } = useQuery<Ticket[]>({
-    queryKey: ['/api/tickets'],
+    queryKey: [`/api/raffles/${raffleId}/tickets`],
+    retry: 1,
+    staleTime: 30000,
+  });
+
+  const { data: raffleData } = useQuery<Raffle>({
+    queryKey: [`/api/raffles/${raffleId}`],
     retry: 1,
     staleTime: 30000,
   });
   
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Participantes</h2>
+      <div className="flex items-center mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mr-2"
+          onClick={onBack}
+        >
+          <i className="fas fa-arrow-left mr-2"></i>
+          Volver
+        </Button>
+        <h2 className="text-xl font-bold">
+          Participantes de: {raffleData?.title || `Rifa #${raffleId}`}
+        </h2>
+      </div>
       <Separator className="mb-4" />
       
       {isLoading ? (
@@ -79,7 +98,6 @@ function ParticipantesView() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cédula</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rifa</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
               </tr>
@@ -91,7 +109,6 @@ function ParticipantesView() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.cedula}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.phone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.raffleId}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.number}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -116,7 +133,85 @@ function ParticipantesView() {
       ) : (
         <div className="text-center py-8">
           <i className="fas fa-users text-4xl text-gray-300 mb-2"></i>
-          <p className="text-gray-500">No hay participantes para mostrar</p>
+          <p className="text-gray-500">No hay participantes para esta rifa</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Componente para la sección de Participantes
+function ParticipantesView() {
+  const [selectedRaffleId, setSelectedRaffleId] = useState<number | null>(null);
+  
+  // Si hay una rifa seleccionada, mostrar sus tickets
+  if (selectedRaffleId) {
+    return (
+      <TicketsListView 
+        raffleId={selectedRaffleId}
+        onBack={() => setSelectedRaffleId(null)}
+      />
+    );
+  }
+  
+  // Si no hay rifa seleccionada, mostrar la lista de rifas disponibles
+  const { data: raffles, isLoading } = useQuery<Raffle[]>({
+    queryKey: ['/api/raffles'],
+    retry: 1,
+    staleTime: 30000,
+    select: (data: any) => data.data || [],
+  });
+  
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-4">Participantes por Rifa</h2>
+      <Separator className="mb-4" />
+      
+      {isLoading ? (
+        <div className="text-center py-8">
+          <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
+          <p className="text-gray-500">Cargando rifas...</p>
+        </div>
+      ) : raffles && raffles.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {raffles.map(raffle => (
+            <Card key={raffle.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedRaffleId(raffle.id)}>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <i className="fas fa-ticket-alt text-xl text-blue-500"></i>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-1 truncate">{raffle.title}</h3>
+                    <div className="flex items-center text-sm">
+                      <span className="text-gray-500 mr-2">
+                        <i className="fas fa-users mr-1"></i>
+                        {raffle.soldTickets || 0} participantes
+                      </span>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        raffle.status === 'activa' 
+                          ? 'bg-green-100 text-green-800' 
+                          : raffle.status === 'proxima'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {raffle.status === 'activa' 
+                          ? 'Activa' 
+                          : raffle.status === 'proxima'
+                            ? 'Próxima'
+                            : 'Finalizada'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <i className="fas fa-ticket-alt text-4xl text-gray-300 mb-2"></i>
+          <p className="text-gray-500">No hay rifas disponibles</p>
         </div>
       )}
     </div>
