@@ -51,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = adminLoginSchema.parse(req.body);
       
-      const admin = await storage.getAdminByEmail(validatedData.email);
+      const admin = await storage.getAdminByUsername(validatedData.username);
       
       if (!admin) {
         return res.status(401).json({ message: "Credenciales incorrectas" });
@@ -68,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Generar token JWT
       const token = jwt.sign(
-        { id: admin.id, email: admin.email },
+        { id: admin.id, username: admin.username },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -77,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Autenticación exitosa",
         user: {
           id: admin.id,
-          email: admin.email,
+          username: admin.username,
           name: admin.name
         },
         token
@@ -202,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const admin = await storage.createAdmin({
-        email: "admin@rifasonline.com",
+        username: "admin",
         password: "admin123",
         name: "Administrador"
       });
@@ -211,7 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Administrador creado correctamente",
         admin: {
           id: admin.id,
-          email: admin.email,
+          username: admin.username,
           name: admin.name
         }
       });

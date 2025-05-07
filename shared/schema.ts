@@ -8,7 +8,7 @@ export const statusEnum = pgEnum('status', ['activa', 'proxima', 'finalizada']);
 // Tabla de administradores
 export const admins = pgTable("admins", {
   id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -61,7 +61,7 @@ export const winners = pgTable("winners", {
 
 // Esquemas de inserción y tipos para admin
 export const insertAdminSchema = createInsertSchema(admins).pick({
-  email: true,
+  username: true,
   password: true,
   name: true,
 });
@@ -118,7 +118,7 @@ export type Winner = typeof winners.$inferSelect;
 
 // Esquema de autenticación
 export const adminLoginSchema = z.object({
-  email: z.string().email("Correo electrónico inválido"),
+  username: z.string().min(3, "Nombre de usuario debe tener al menos 3 caracteres"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
