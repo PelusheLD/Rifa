@@ -333,6 +333,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error al obtener números disponibles' });
     }
   });
+  
+  // Obtener todos los ganadores
+  app.get('/api/winners', async (req: Request, res: Response) => {
+    try {
+      // Simulamos ganadores para pruebas ya que no hay ganadores reales aún
+      const winners = [
+        {
+          id: 1,
+          raffleId: 1,
+          winnerName: "Juan Pérez",
+          ticketNumber: 25,
+          prize: "Automóvil",
+          announcedDate: new Date(2023, 3, 20).toISOString(),
+          claimed: true
+        },
+        {
+          id: 2,
+          raffleId: 2,
+          winnerName: "María González",
+          ticketNumber: 88,
+          prize: "Viaje todo pagado",
+          announcedDate: new Date(2023, 5, 15).toISOString(),
+          claimed: false
+        }
+      ];
+      
+      res.json(winners);
+    } catch (error) {
+      console.error('Error al obtener ganadores:', error);
+      res.status(500).json({ message: 'Error al obtener ganadores' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

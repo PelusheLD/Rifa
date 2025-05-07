@@ -27,9 +27,34 @@ type APIResponse = {
   };
 };
 
+// Tipo para la estructura de los tickets
+type Ticket = {
+  id: number;
+  raffleId: number;
+  number: number;
+  cedula: string;
+  name: string;
+  email: string;
+  phone: string;
+  paymentStatus: string;
+  reservationDate: string;
+  paymentDate?: string;
+};
+
+// Tipo para la estructura de los ganadores
+type Winner = {
+  id: number;
+  raffleId: number;
+  winnerName: string;
+  ticketNumber: number;
+  prize: string;
+  announcedDate: string;
+  claimed: boolean;
+};
+
 // Componente para la sección de Participantes
 function ParticipantesView() {
-  const { data: tickets, isLoading } = useQuery({
+  const { data: tickets, isLoading } = useQuery<Ticket[]>({
     queryKey: ['/api/tickets'],
     retry: 1,
     staleTime: 30000,
@@ -60,7 +85,7 @@ function ParticipantesView() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {tickets.map((ticket: any) => (
+              {tickets.map((ticket) => (
                 <tr key={ticket.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ticket.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.cedula}</td>
@@ -100,7 +125,7 @@ function ParticipantesView() {
 
 // Componente para la sección de Ganadores
 function GanadoresView() {
-  const { data: winners, isLoading } = useQuery({
+  const { data: winners, isLoading } = useQuery<Winner[]>({
     queryKey: ['/api/winners'],
     retry: 1,
     staleTime: 30000,
@@ -111,7 +136,12 @@ function GanadoresView() {
       <h2 className="text-xl font-bold mb-4">Ganadores</h2>
       <Separator className="mb-4" />
       
-      {winners && winners.length > 0 ? (
+      {isLoading ? (
+        <div className="text-center py-8">
+          <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
+          <p className="text-gray-500">Cargando ganadores...</p>
+        </div>
+      ) : winners && winners.length > 0 ? (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -125,7 +155,7 @@ function GanadoresView() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {winners.map((winner: any) => (
+              {winners.map((winner) => (
                 <tr key={winner.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{winner.raffleId}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{winner.winnerName}</td>
@@ -145,11 +175,6 @@ function GanadoresView() {
               ))}
             </tbody>
           </table>
-        </div>
-      ) : isLoading ? (
-        <div className="text-center py-8">
-          <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
-          <p className="text-gray-500">Cargando ganadores...</p>
         </div>
       ) : (
         <div className="text-center py-8">
