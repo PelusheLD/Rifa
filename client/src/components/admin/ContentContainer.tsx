@@ -194,9 +194,9 @@ export default function ContentContainer({ activeView }: ContentContainerProps) 
                     </button>
                   </div>
                   
-                  {rafflesData?.data?.length > 0 ? (
+                  {rafflesData?.data && rafflesData.data.length > 0 ? (
                     <div className="space-y-3 lg:space-y-4">
-                      {rafflesData.data.slice(0, 4).map((raffle: any) => (
+                      {rafflesData.data.slice(0, 4).map((raffle) => (
                         <div key={raffle.id} className="flex items-center p-2 lg:p-3 bg-gray-50 rounded-lg">
                           <div className="flex-shrink-0">
                             <div className="bg-primary-500 text-white p-1.5 lg:p-2 rounded-lg">
