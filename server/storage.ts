@@ -26,6 +26,7 @@ export interface IStorage {
   
   // Ticket methods
   getTicket(id: number): Promise<Ticket | undefined>;
+  getAllTickets(): Promise<Ticket[]>;
   getTicketsForRaffle(raffleId: number): Promise<Ticket[]>;
   createTicket(ticket: InsertTicket): Promise<Ticket>;
   getTicketsByNumber(raffleId: number, numbers: number[]): Promise<Ticket[]>;
@@ -157,6 +158,10 @@ export class DatabaseStorage implements IStorage {
   async getTicket(id: number): Promise<Ticket | undefined> {
     const [ticket] = await db.select().from(tickets).where(eq(tickets.id, id));
     return ticket;
+  }
+  
+  async getAllTickets(): Promise<Ticket[]> {
+    return await db.select().from(tickets).orderBy(desc(tickets.reservationDate));
   }
 
   async getTicketsForRaffle(raffleId: number): Promise<Ticket[]> {

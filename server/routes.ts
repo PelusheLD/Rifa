@@ -226,6 +226,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API TICKETS
+  
+  // Obtener todos los tickets
+  app.get('/api/tickets', async (req: Request, res: Response) => {
+    try {
+      // Obtener todos los tickets desde el storage
+      const allTickets = await storage.getAllTickets();
+      res.json(allTickets);
+    } catch (error) {
+      console.error('Error al obtener todos los tickets:', error);
+      res.status(500).json({ message: 'Error al obtener tickets' });
+    }
+  });
 
   // Obtener un ticket específico
   app.get('/api/tickets/:id', async (req: Request, res: Response) => {
