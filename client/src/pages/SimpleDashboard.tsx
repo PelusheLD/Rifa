@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useRoute } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,8 +53,126 @@ type Winner = {
   claimed: boolean;
 };
 
-// Componente para mostrar los tickets de una rifa específica
-function TicketsListView({ raffleId, onBack }: { raffleId: number, onBack: () => void }) {
+// Tipo para representar un participante agrupado
+type ParticipantSummary = {
+  cedula: string;
+  name: string;
+  email: string;
+  phone: string;
+  totalTickets: number;
+  pendingTickets: number;
+  paidTickets: number;
+  tickets: Ticket[];
+};
+
+// Componente para mostrar los tickets específicos de un participante
+function ParticipantTicketsView({ 
+  raffleId, 
+  participant, 
+  onBack 
+}: { 
+  raffleId: number, 
+  participant: ParticipantSummary, 
+  onBack: () => void 
+}) {
+  const { data: raffleData } = useQuery<Raffle>({
+    queryKey: [`/api/raffles/${raffleId}`],
+    retry: 1,
+    staleTime: 30000,
+  });
+  
+  return (
+    <div>
+      <div className="flex items-center mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mr-2"
+          onClick={onBack}
+        >
+          <i className="fas fa-arrow-left mr-2"></i>
+          Volver
+        </Button>
+        <h2 className="text-xl font-bold">
+          Boletos de: {participant.name} - {raffleData?.title || `Rifa #${raffleId}`}
+        </h2>
+      </div>
+      <Separator className="mb-4" />
+      
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Cédula</p>
+            <p className="font-medium">{participant.cedula}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Email</p>
+            <p className="font-medium">{participant.email}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Teléfono</p>
+            <p className="font-medium">{participant.phone}</p>
+          </div>
+        </div>
+      </div>
+      
+      {participant.tickets.length > 0 ? (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Reserva</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Pago</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {participant.tickets.map((ticket) => (
+                <tr key={ticket.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ticket.number}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(ticket.reservationDate).toLocaleDateString('es-ES')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {ticket.paymentDate ? new Date(ticket.paymentDate).toLocaleDateString('es-ES') : '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      ticket.paymentStatus === 'pagado' 
+                        ? 'bg-green-100 text-green-800' 
+                        : ticket.paymentStatus === 'pendiente' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                    }`}>
+                      {ticket.paymentStatus === 'pagado' 
+                        ? 'Pagado' 
+                        : ticket.paymentStatus === 'pendiente' 
+                          ? 'Pendiente' 
+                          : 'Cancelado'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <i className="fas fa-ticket-alt text-4xl text-gray-300 mb-2"></i>
+          <p className="text-gray-500">No hay boletos para mostrar</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Componente para mostrar la lista agrupada de participantes de una rifa
+function ParticipantsListView({ raffleId, onBack, onSelectParticipant }: { 
+  raffleId: number, 
+  onBack: () => void,
+  onSelectParticipant: (participant: ParticipantSummary) => void
+}) {
   const { data: tickets, isLoading } = useQuery<Ticket[]>({
     queryKey: [`/api/raffles/${raffleId}/tickets`],
     retry: 1,
@@ -66,6 +184,41 @@ function TicketsListView({ raffleId, onBack }: { raffleId: number, onBack: () =>
     retry: 1,
     staleTime: 30000,
   });
+  
+  // Agrupar tickets por cédula para obtener la lista de participantes
+  const participantsList = useMemo(() => {
+    if (!tickets) return [];
+    
+    const participantsMap = new Map<string, ParticipantSummary>();
+    
+    tickets.forEach(ticket => {
+      if (!participantsMap.has(ticket.cedula)) {
+        participantsMap.set(ticket.cedula, {
+          cedula: ticket.cedula,
+          name: ticket.name,
+          email: ticket.email,
+          phone: ticket.phone,
+          totalTickets: 0,
+          pendingTickets: 0,
+          paidTickets: 0,
+          tickets: []
+        });
+      }
+      
+      const participant = participantsMap.get(ticket.cedula)!;
+      participant.totalTickets++;
+      
+      if (ticket.paymentStatus === 'pagado') {
+        participant.paidTickets++;
+      } else if (ticket.paymentStatus === 'pendiente') {
+        participant.pendingTickets++;
+      }
+      
+      participant.tickets.push(ticket);
+    });
+    
+    return Array.from(participantsMap.values());
+  }, [tickets]);
   
   return (
     <div>
@@ -90,7 +243,7 @@ function TicketsListView({ raffleId, onBack }: { raffleId: number, onBack: () =>
           <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
           <p className="text-gray-500">Cargando participantes...</p>
         </div>
-      ) : tickets && tickets.length > 0 ? (
+      ) : participantsList.length > 0 ? (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -99,32 +252,42 @@ function TicketsListView({ raffleId, onBack }: { raffleId: number, onBack: () =>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cédula</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Boletos</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pagados</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pendientes</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {tickets.map((ticket) => (
-                <tr key={ticket.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ticket.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.cedula}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.phone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ticket.number}</td>
+              {participantsList.map((participant) => (
+                <tr key={participant.cedula} className="hover:bg-gray-50 cursor-pointer" onClick={() => onSelectParticipant(participant)}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{participant.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{participant.cedula}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{participant.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{participant.phone}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{participant.totalTickets}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      ticket.paymentStatus === 'pagado' 
-                        ? 'bg-green-100 text-green-800' 
-                        : ticket.paymentStatus === 'pendiente' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-red-100 text-red-800'
-                    }`}>
-                      {ticket.paymentStatus === 'pagado' 
-                        ? 'Pagado' 
-                        : ticket.paymentStatus === 'pendiente' 
-                          ? 'Pendiente' 
-                          : 'Cancelado'}
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      {participant.paidTickets}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      {participant.pendingTickets}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-800"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectParticipant(participant);
+                      }}
+                    >
+                      Ver boletos
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -209,20 +372,32 @@ function RaffleListView({ onSelectRaffle }: { onSelectRaffle: (id: number) => vo
 // Componente para la sección de Participantes
 function ParticipantesView() {
   const [selectedRaffleId, setSelectedRaffleId] = useState<number | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<ParticipantSummary | null>(null);
   
-  // Renderizado condicional basado en si hay una rifa seleccionada o no
-  return (
-    <>
-      {selectedRaffleId ? (
-        <TicketsListView 
-          raffleId={selectedRaffleId}
-          onBack={() => setSelectedRaffleId(null)}
-        />
-      ) : (
-        <RaffleListView onSelectRaffle={setSelectedRaffleId} />
-      )}
-    </>
-  );
+  // Si hay un participante seleccionado, mostramos sus boletos
+  if (selectedParticipant && selectedRaffleId) {
+    return (
+      <ParticipantTicketsView 
+        raffleId={selectedRaffleId}
+        participant={selectedParticipant}
+        onBack={() => setSelectedParticipant(null)}
+      />
+    );
+  }
+  
+  // Si hay una rifa seleccionada pero no un participante, mostramos la lista de participantes
+  if (selectedRaffleId) {
+    return (
+      <ParticipantsListView 
+        raffleId={selectedRaffleId}
+        onBack={() => setSelectedRaffleId(null)}
+        onSelectParticipant={setSelectedParticipant}
+      />
+    );
+  }
+  
+  // Si no hay nada seleccionado, mostramos la lista de rifas
+  return <RaffleListView onSelectRaffle={setSelectedRaffleId} />;
 }
 
 // Componente para la sección de Ganadores
