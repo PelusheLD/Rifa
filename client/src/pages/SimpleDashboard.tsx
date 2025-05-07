@@ -322,6 +322,13 @@ export default function SimpleDashboard() {
   const { toast } = useToast();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState('dashboard');
+  
+  // Actualizar la vista activa basado en la URL
+  useEffect(() => {
+    if (match && params.view) {
+      setActiveView(params.view);
+    }
+  }, [match, params]);
 
   // Query para obtener datos básicos
   const { data, isLoading } = useQuery<APIResponse>({
@@ -482,9 +489,17 @@ export default function SimpleDashboard() {
         </header>
         
         <main className="p-6">
-          <h1 className="text-2xl font-bold mb-6">Panel de Administración</h1>
+          <h1 className="text-2xl font-bold mb-6">
+            {activeView === 'dashboard' && 'Panel de Administración'}
+            {activeView === 'rifas' && 'Gestión de Rifas'}
+            {activeView === 'participantes' && 'Gestión de Participantes'}
+            {activeView === 'ganadores' && 'Gestión de Ganadores'}
+          </h1>
           
-          {/* Estadísticas */}
+          {/* Contenido según la vista seleccionada */}
+          {activeView === 'dashboard' && (
+            <>
+              {/* Estadísticas */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="shadow-sm">
               <CardContent className="p-6">
@@ -629,6 +644,17 @@ export default function SimpleDashboard() {
               </div>
             </CardContent>
           </Card>
+            </>
+          )}
+          
+          {/* Vista de Gestión de Rifas */}
+          {activeView === 'rifas' && <RaffleManager />}
+          
+          {/* Vista de Participantes */}
+          {activeView === 'participantes' && <ParticipantesView />}
+          
+          {/* Vista de Ganadores */}
+          {activeView === 'ganadores' && <GanadoresView />}
         </main>
       </div>
     </div>
