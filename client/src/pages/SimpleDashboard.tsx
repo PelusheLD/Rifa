@@ -804,6 +804,14 @@ export default function SimpleDashboard() {
               <i className="fas fa-trophy text-gray-400"></i>
               {isSidebarOpen && <span>Ganadores</span>}
             </button>
+            
+            <button 
+              className="w-full px-4 py-3 flex items-center space-x-3 text-white hover:bg-gray-800 transition-colors"
+              onClick={() => setLocation('/admin/seleccionar-ganador')}
+            >
+              <i className="fas fa-award text-gray-400"></i>
+              {isSidebarOpen && <span>Seleccionar Ganador</span>}
+            </button>
           </nav>
         </div>
         
@@ -840,6 +848,7 @@ export default function SimpleDashboard() {
             {activeView === 'rifas' && 'Gestión de Rifas'}
             {activeView === 'participantes' && 'Gestión de Participantes'}
             {activeView === 'ganadores' && 'Gestión de Ganadores'}
+            {activeView === 'seleccionar-ganador' && 'Seleccionar Ganador'}
           </h1>
           
           {/* Contenido según la vista seleccionada */}
@@ -1001,6 +1010,9 @@ export default function SimpleDashboard() {
           
           {/* Vista de Ganadores */}
           {activeView === 'ganadores' && <GanadoresView />}
+          
+          {/* Vista de Selección de Ganador */}
+          {activeView === 'seleccionar-ganador' && <SeleccionarGanadorView />}
         </main>
       </div>
     </div>
