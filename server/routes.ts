@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         winnerName,
         ticketNumber,
         prize,
-        announcedDate: new Date().toISOString(), // la transformación a Date se hace en el schema
+        announcedDate: new Date(),
         claimed: false
       });
       
@@ -441,6 +441,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error al registrar ganador:', error);
       res.status(500).json({ message: 'Error al registrar ganador' });
+    }
+  });
+
+  // Marcar ganador como reclamado
+  app.patch('/api/winners/:id/claim', authenticateJWT, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { claimed } = req.body;
+
+      // Validar que claimed sea booleano
+      if (typeof claimed !== "boolean") {
+        return res.status(400).json({ message: "El campo 'claimed' debe ser booleano" });
+      }
+
+      const updatedWinner = await storage.updateWinner(id, claimed);
+
+      if (!updatedWinner) {
+        return res.status(404).json({ message: "Ganador no encontrado" });
+      }
+
+      res.json(updatedWinner);
+    } catch (error) {
+      console.error("Error al actualizar ganador:", error);
+      res.status(500).json({ message: "Error al actualizar ganador" });
     }
   });
 

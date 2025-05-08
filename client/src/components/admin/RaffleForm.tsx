@@ -62,13 +62,19 @@ export default function RaffleForm({ raffle, onClose }: RaffleFormProps) {
       };
 
       if (isEditing) {
-        await apiRequest("PUT", `/api/raffles/${raffle.id}`, formattedData);
+        await apiRequest(`/api/raffles/${raffle.id}`, {
+          method: "PUT",
+          body: JSON.stringify(formattedData)
+        });
         toast({
           title: "Rifa actualizada",
           description: "La rifa se ha actualizado correctamente",
         });
       } else {
-        await apiRequest("POST", "/api/raffles", formattedData);
+        await apiRequest("/api/raffles", {
+          method: "POST",
+          body: JSON.stringify(formattedData)
+        });
         toast({
           title: "Rifa creada",
           description: "La nueva rifa se ha creado correctamente",

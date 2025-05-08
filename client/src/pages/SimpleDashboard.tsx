@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import RaffleManager from "@/components/admin/RaffleManager";
+import { apiRequest } from "@/lib/queryClient";
 
 // Definición de tipos más simple
 type Raffle = {
@@ -467,36 +468,21 @@ function GanadoresView() {
   // Función para marcar como reclamado
   const handleMarkAsClaimed = async (winnerId: number) => {
     try {
-      const response = await fetch(`/api/winners/${winnerId}/claim`, {
+      const data = await apiRequest(`/api/winners/${winnerId}/claim`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
         body: JSON.stringify({ claimed: true })
       });
-      
-      if (response.ok) {
-        // Refrescar los datos
-        refetch();
-        
-        toast({
-          title: "¡Éxito!",
-          description: "Premio marcado como reclamado",
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "No se pudo actualizar el estado del premio",
-          variant: "destructive"
-        });
-      }
+      // Refrescar los datos
+      refetch();
+      toast({
+        title: "¡Éxito!",
+        description: "Premio marcado como reclamado",
+        variant: "default"
+      });
     } catch (error) {
-      console.error("Error al actualizar ganador:", error);
       toast({
         title: "Error",
-        description: "Hubo un problema de conexión",
+        description: "No se pudo actualizar el estado del premio",
         variant: "destructive"
       });
     }
@@ -681,41 +667,24 @@ function SeleccionarGanadorView() {
         prize: selectedRaffle.title // Usar el título de la rifa como premio
       };
       
-      // Llamar a la API para registrar el ganador
-      const response = await fetch('/api/winners', {
+      // Llamar a la API para registrar el ganador usando apiRequest
+      const data = await apiRequest('/api/winners', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
         body: JSON.stringify(winnerData)
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        toast({
-          title: "¡Ganador registrado con éxito!",
-          description: `${winnerInfo.name} ha sido registrado oficialmente como ganador`,
-          variant: "default"
-        });
-        
-        // Redireccionar a la lista de ganadores
-        setTimeout(() => {
-          setLocation('/admin/ganadores');
-        }, 2000);
-      } else {
-        const errorData = await response.json();
-        toast({
-          title: "Error al registrar ganador",
-          description: errorData.message || "Hubo un problema al registrar el ganador",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error("Error al registrar ganador:", error);
+      toast({
+        title: "¡Ganador registrado con éxito!",
+        description: `${winnerInfo.name} ha sido registrado oficialmente como ganador`,
+        variant: "default"
+      });
+      // Redireccionar a la lista de ganadores
+      setTimeout(() => {
+        setLocation('/admin/ganadores');
+      }, 2000);
+    } catch (error: any) {
       toast({
         title: "Error al registrar ganador",
-        description: "Hubo un problema de conexión al intentar registrar el ganador",
+        description: error?.message || "Hubo un problema al registrar el ganador",
         variant: "destructive"
       });
     }

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -45,6 +46,11 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
+  });
+
+  // Middleware para rutas API no encontradas
+  app.use("/api", (req, res) => {
+    res.status(404).json({ message: "API endpoint not found" });
   });
 
   // importantly only setup vite in development and after
