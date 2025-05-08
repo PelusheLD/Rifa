@@ -456,64 +456,132 @@ function ParticipantesView() {
 
 // Componente para la sección de Ganadores
 function GanadoresView() {
-  const { data: winners, isLoading } = useQuery<Winner[]>({
+  const { data: winners, isLoading, refetch } = useQuery<Winner[]>({
     queryKey: ['/api/winners'],
     retry: 1,
     staleTime: 30000,
   });
   
-  return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Ganadores</h2>
-      <Separator className="mb-4" />
+  const { toast } = useToast();
+  
+  // Función para marcar como reclamado
+  const handleMarkAsClaimed = async (winnerId: number) => {
+    try {
+      const response = await fetch(`/api/winners/${winnerId}/claim`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ claimed: true })
+      });
       
-      {isLoading ? (
-        <div className="text-center py-8">
-          <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
-          <p className="text-gray-500">Cargando ganadores...</p>
-        </div>
-      ) : winners && winners.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rifa</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ganador</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premio</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {winners.map((winner) => (
-                <tr key={winner.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{winner.raffleId}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{winner.winnerName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{winner.ticketNumber}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(winner.announcedDate).toLocaleDateString('es-ES')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{winner.prize}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      winner.claimed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {winner.claimed ? 'Reclamado' : 'Pendiente'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="text-center py-8">
-          <i className="fas fa-trophy text-4xl text-gray-300 mb-2"></i>
-          <p className="text-gray-500">No hay ganadores para mostrar</p>
-        </div>
-      )}
-    </div>
+      if (response.ok) {
+        // Refrescar los datos
+        refetch();
+        
+        toast({
+          title: "¡Éxito!",
+          description: "Premio marcado como reclamado",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "No se pudo actualizar el estado del premio",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error al actualizar ganador:", error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema de conexión",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  return (
+    <Card className="shadow-sm">
+      <CardContent className="p-6">
+        <h2 className="text-xl font-bold mb-4">Ganadores de Rifas</h2>
+        <Separator className="mb-6" />
+        
+        {isLoading ? (
+          <div className="text-center py-8">
+            <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
+            <p className="text-gray-500">Cargando ganadores...</p>
+          </div>
+        ) : winners && winners.length > 0 ? (
+          <div className="space-y-6">
+            {winners.map(winner => {
+              return (
+                <div key={winner.id} className="bg-white border rounded-lg p-6 shadow-sm">
+                  <div className="flex items-center mb-4">
+                    <div className="flex-shrink-0 mr-4">
+                      <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <i className="fas fa-trophy text-yellow-500 text-xl"></i>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold">{winner.winnerName}</h3>
+                      <p className="text-sm text-gray-500">
+                        Boleto #{winner.ticketNumber} - {new Date(winner.announcedDate).toLocaleDateString('es-ES')}
+                      </p>
+                    </div>
+                    <div className="ml-auto">
+                      {winner.claimed ? (
+                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+                          Premio reclamado
+                        </span>
+                      ) : (
+                        <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">
+                          Pendiente de reclamar
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 mr-3">
+                        <i className="fas fa-gift text-primary-500"></i>
+                      </div>
+                      <div>
+                        <p className="font-medium">Premio:</p>
+                        <p>{winner.prize}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    {!winner.claimed && (
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={() => handleMarkAsClaimed(winner.id)}
+                      >
+                        <i className="fas fa-check-circle mr-2"></i>
+                        Marcar como reclamado
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <i className="fas fa-trophy text-4xl text-gray-300 mb-2"></i>
+            <p className="text-gray-500">No hay ganadores registrados</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Los ganadores aparecerán aquí cuando se registren
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
