@@ -50,7 +50,9 @@ export const tickets = pgTable("tickets", {
 export const winners = pgTable("winners", {
   id: serial("id").primaryKey(),
   raffleId: integer("raffle_id").notNull(),
-  ticketId: integer("ticket_id").notNull(),
+  winnerName: text("winner_name").notNull(),
+  ticketNumber: integer("ticket_number").notNull(),
+  prize: text("prize").notNull(),
   announcedDate: timestamp("announced_date").defaultNow(),
   claimed: boolean("claimed").default(false),
 });
@@ -98,7 +100,9 @@ export type Ticket = typeof tickets.$inferSelect;
 // Esquemas de inserción y tipos para ganadores
 export const insertWinnerSchema = createInsertSchema(winners).pick({
   raffleId: true,
-  ticketId: true,
+  winnerName: true,
+  ticketNumber: true,
+  prize: true,
   claimed: true,
 });
 

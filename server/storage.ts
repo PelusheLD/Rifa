@@ -36,6 +36,7 @@ export interface IStorage {
   
   // Winner methods
   getWinner(id: number): Promise<Winner | undefined>;
+  getWinners(): Promise<Winner[]>;
   getWinnersForRaffle(raffleId: number): Promise<Winner[]>;
   createWinner(winner: InsertWinner): Promise<Winner>;
   updateWinner(id: number, claimed: boolean): Promise<Winner | undefined>;
@@ -319,6 +320,13 @@ export class DatabaseStorage implements IStorage {
   async getWinner(id: number): Promise<Winner | undefined> {
     const [winner] = await db.select().from(winners).where(eq(winners.id, id));
     return winner;
+  }
+
+  async getWinners(): Promise<Winner[]> {
+    return await db
+      .select()
+      .from(winners)
+      .orderBy(desc(winners.announcedDate));
   }
 
   async getWinnersForRaffle(raffleId: number): Promise<Winner[]> {

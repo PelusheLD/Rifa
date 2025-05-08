@@ -761,7 +761,10 @@ function SeleccionarGanadorView() {
                   </div>
                   
                   <div className="pt-4 mt-4 border-t border-gray-200">
-                    <Button className="w-full">
+                    <Button 
+                      className="w-full"
+                      onClick={handleRegisterWinner}
+                    >
                       <i className="fas fa-trophy mr-2"></i>
                       Registrar como Ganador Oficial
                     </Button>
