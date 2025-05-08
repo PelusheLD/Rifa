@@ -65,6 +65,9 @@ type ParticipantSummary = {
   tickets: Ticket[];
 };
 
+// Importando hook para acciones de tickets
+import { useTicketActions } from "@/hooks/use-ticket-actions";
+
 // Componente para mostrar los tickets específicos de un participante
 function ParticipantTicketsView({ 
   raffleId, 
@@ -80,6 +83,21 @@ function ParticipantTicketsView({
     retry: 1,
     staleTime: 30000,
   });
+  
+  const { releaseTicket, markTicketAsPaid, isReleasing, isMarkingAsPaid } = useTicketActions();
+  const { toast } = useToast();
+  
+  // Manejar la liberación de un ticket
+  const handleReleaseTicket = (ticket: Ticket) => {
+    if (window.confirm(`¿Estás seguro de liberar el boleto #${ticket.number}? Esta acción no se puede deshacer.`)) {
+      releaseTicket(ticket.id, raffleId);
+    }
+  };
+  
+  // Manejar el marcado como pagado
+  const handleMarkAsPaid = (ticket: Ticket) => {
+    markTicketAsPaid(ticket.id, raffleId);
+  };
   
   return (
     <div>
@@ -125,6 +143,7 @@ function ParticipantTicketsView({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Reserva</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Pago</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -141,16 +160,41 @@ function ParticipantTicketsView({
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       ticket.paymentStatus === 'pagado' 
                         ? 'bg-green-100 text-green-800' 
-                        : ticket.paymentStatus === 'pendiente' 
+                        : ticket.paymentStatus === 'pendiente' || ticket.paymentStatus === 'apartado'
                           ? 'bg-yellow-100 text-yellow-800' 
                           : 'bg-red-100 text-red-800'
                     }`}>
                       {ticket.paymentStatus === 'pagado' 
                         ? 'Pagado' 
-                        : ticket.paymentStatus === 'pendiente' 
-                          ? 'Pendiente' 
+                        : ticket.paymentStatus === 'pendiente' || ticket.paymentStatus === 'apartado'
+                          ? 'Apartado' 
                           : 'Cancelado'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex space-x-2">
+                      {/* Botón para liberar ticket */}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={isReleasing}
+                        onClick={() => handleReleaseTicket(ticket)}
+                      >
+                        Liberar
+                      </Button>
+                      
+                      {/* Botón para marcar como pagado (solo si no está pagado) */}
+                      {ticket.paymentStatus !== 'pagado' && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          disabled={isMarkingAsPaid}
+                          onClick={() => handleMarkAsPaid(ticket)}
+                        >
+                          Pagar
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

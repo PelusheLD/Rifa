@@ -238,6 +238,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error al obtener tickets' });
     }
   });
+  
+  // Liberar (eliminar) un ticket
+  app.delete('/api/tickets/:id', authenticateJWT, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTicket(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: 'Ticket no encontrado' });
+      }
+      
+      res.json({ message: 'Ticket liberado correctamente' });
+    } catch (error) {
+      console.error('Error al liberar ticket:', error);
+      res.status(500).json({ message: 'Error al liberar ticket' });
+    }
+  });
+  
+  // Actualizar estado de pago de un ticket
+  app.patch('/api/tickets/:id/payment-status', authenticateJWT, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { paymentStatus } = req.body;
+      
+      if (!paymentStatus || !['apartado', 'pagado', 'cancelado'].includes(paymentStatus)) {
+        return res.status(400).json({ message: 'Estado de pago inválido' });
+      }
+      
+      const updatedTicket = await storage.updateTicketPaymentStatus(id, paymentStatus);
+      
+      if (!updatedTicket) {
+        return res.status(404).json({ message: 'Ticket no encontrado' });
+      }
+      
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error('Error al actualizar estado de pago:', error);
+      res.status(500).json({ message: 'Error al actualizar estado de pago' });
+    }
+  });
 
   // Obtener un ticket específico
   app.get('/api/tickets/:id', async (req: Request, res: Response) => {

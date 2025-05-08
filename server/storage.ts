@@ -31,6 +31,8 @@ export interface IStorage {
   createTicket(ticket: InsertTicket): Promise<Ticket>;
   getTicketsByNumber(raffleId: number, numbers: number[]): Promise<Ticket[]>;
   getAvailableTickets(raffleId: number): Promise<number[]>;
+  deleteTicket(id: number): Promise<boolean>; // Para liberar un ticket
+  updateTicketPaymentStatus(id: number, paymentStatus: string): Promise<Ticket | undefined>; // Para actualizar estado de pago
   
   // Winner methods
   getWinner(id: number): Promise<Winner | undefined>;
@@ -230,6 +232,60 @@ export class DatabaseStorage implements IStorage {
     }
     
     return newTicket;
+  }
+  
+  async deleteTicket(id: number): Promise<boolean> {
+    try {
+      // Primero obtenemos el ticket para saber a qué rifa pertenece
+      const ticket = await this.getTicket(id);
+      if (!ticket) {
+        return false;
+      }
+      
+      // Eliminamos el ticket
+      const [deleted] = await db
+        .delete(tickets)
+        .where(eq(tickets.id, id))
+        .returning();
+      
+      if (deleted) {
+        // Decrementamos el contador de boletos vendidos en la rifa
+        const raffle = await this.getRaffle(ticket.raffleId);
+        if (raffle && raffle.soldTickets > 0) {
+          await db
+            .update(raffles)
+            .set({
+              soldTickets: raffle.soldTickets - 1
+            })
+            .where(eq(raffles.id, ticket.raffleId));
+        }
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error al eliminar ticket:", error);
+      return false;
+    }
+  }
+  
+  async updateTicketPaymentStatus(id: number, paymentStatus: string): Promise<Ticket | undefined> {
+    try {
+      // Actualizamos el estado de pago del ticket
+      const [updatedTicket] = await db
+        .update(tickets)
+        .set({ 
+          paymentStatus,
+          paymentDate: paymentStatus === 'pagado' ? new Date().toISOString() : null
+        })
+        .where(eq(tickets.id, id))
+        .returning();
+      
+      return updatedTicket;
+    } catch (error) {
+      console.error("Error al actualizar estado de pago:", error);
+      return undefined;
+    }
   }
 
   // Winner methods
