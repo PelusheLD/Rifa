@@ -259,19 +259,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Actualizar estado de pago de un ticket
   app.patch('/api/tickets/:id/payment-status', authenticateJWT, async (req: Request, res: Response) => {
     try {
+      console.log("Recibida solicitud PATCH para actualizar estado de pago");
       const id = parseInt(req.params.id);
+      console.log("ID del ticket:", id);
+      console.log("Cuerpo de la solicitud:", req.body);
+      
       const { paymentStatus } = req.body;
       
-      if (!paymentStatus || !['apartado', 'pagado', 'cancelado'].includes(paymentStatus)) {
+      if (!paymentStatus || !['apartado', 'pagado', 'cancelado', 'pendiente'].includes(paymentStatus)) {
+        console.log("Estado de pago inválido:", paymentStatus);
         return res.status(400).json({ message: 'Estado de pago inválido' });
       }
       
-      const updatedTicket = await storage.updateTicketPaymentStatus(id, paymentStatus);
-      
-      if (!updatedTicket) {
+      // Verificar si el ticket existe
+      const ticketExists = await storage.getTicket(id);
+      if (!ticketExists) {
+        console.log(`Ticket con ID ${id} no existe en la base de datos`);
         return res.status(404).json({ message: 'Ticket no encontrado' });
       }
       
+      console.log(`Actualizando ticket ${id} a estado ${paymentStatus}`);
+      const updatedTicket = await storage.updateTicketPaymentStatus(id, paymentStatus);
+      
+      if (!updatedTicket) {
+        console.log(`Error al actualizar ticket ${id}. No se pudo completar la operación.`);
+        return res.status(404).json({ message: 'Ticket no encontrado' });
+      }
+      
+      console.log("Ticket actualizado correctamente:", updatedTicket);
       res.json(updatedTicket);
     } catch (error) {
       console.error('Error al actualizar estado de pago:', error);

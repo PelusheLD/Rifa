@@ -271,12 +271,27 @@ export class DatabaseStorage implements IStorage {
   
   async updateTicketPaymentStatus(id: number, paymentStatus: string): Promise<Ticket | undefined> {
     try {
+      // Verificamos primero si el ticket existe
+      const ticket = await this.getTicket(id);
+      if (!ticket) {
+        console.error(`Ticket con ID ${id} no encontrado`);
+        return undefined;
+      }
+      
+      console.log(`Actualizando estado de ticket ${id} a ${paymentStatus}`);
+      
+      // Determinar la fecha de pago
+      let paymentDate = null;
+      if (paymentStatus === 'pagado') {
+        paymentDate = new Date(); // Usar objeto Date directamente en lugar de string
+      }
+      
       // Actualizamos el estado de pago del ticket
       const [updatedTicket] = await db
         .update(tickets)
         .set({ 
           paymentStatus,
-          paymentDate: paymentStatus === 'pagado' ? new Date().toISOString() : null
+          paymentDate
         })
         .where(eq(tickets.id, id))
         .returning();
