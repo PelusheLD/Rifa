@@ -280,23 +280,35 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Actualizando estado de ticket ${id} a ${paymentStatus}`);
       
+      // Validamos que el estado de pago sea uno de los valores permitidos en el enum
+      if (!['pendiente', 'pagado', 'cancelado'].includes(paymentStatus)) {
+        console.error(`Estado de pago inválido: ${paymentStatus}`);
+        return undefined;
+      }
+      
       // Determinar la fecha de pago
       let paymentDate = null;
       if (paymentStatus === 'pagado') {
         paymentDate = new Date(); // Usar objeto Date directamente en lugar de string
       }
       
-      // Actualizamos el estado de pago del ticket
-      const [updatedTicket] = await db
-        .update(tickets)
-        .set({ 
-          paymentStatus,
-          paymentDate
-        })
-        .where(eq(tickets.id, id))
-        .returning();
+      try {
+        // Actualizamos el estado de pago del ticket
+        const [updatedTicket] = await db
+          .update(tickets)
+          .set({
+            paymentStatus: paymentStatus as any, // Forzar el tipo para evitar errores de tipo en tiempo de compilación
+            paymentDate: paymentDate
+          })
+          .where(eq(tickets.id, id))
+          .returning();
       
-      return updatedTicket;
+        console.log("Ticket actualizado con éxito:", updatedTicket);
+        return updatedTicket;
+      } catch (dbError) {
+        console.error("Error en la operación de base de datos:", dbError);
+        return undefined;
+      }
     } catch (error) {
       console.error("Error al actualizar estado de pago:", error);
       return undefined;

@@ -266,8 +266,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { paymentStatus } = req.body;
       
-      if (!paymentStatus || !['apartado', 'pagado', 'cancelado', 'pendiente'].includes(paymentStatus)) {
-        console.log("Estado de pago inválido:", paymentStatus);
+      // Mapear 'apartado' a 'pendiente' para ser compatible con el enum en la base de datos
+      const dbPaymentStatus = paymentStatus === 'apartado' ? 'pendiente' : paymentStatus;
+      
+      if (!dbPaymentStatus || !['pendiente', 'pagado', 'cancelado'].includes(dbPaymentStatus)) {
+        console.log("Estado de pago inválido:", dbPaymentStatus);
         return res.status(400).json({ message: 'Estado de pago inválido' });
       }
       
@@ -278,8 +281,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Ticket no encontrado' });
       }
       
-      console.log(`Actualizando ticket ${id} a estado ${paymentStatus}`);
-      const updatedTicket = await storage.updateTicketPaymentStatus(id, paymentStatus);
+      console.log(`Actualizando ticket ${id} a estado ${dbPaymentStatus}`);
+      const updatedTicket = await storage.updateTicketPaymentStatus(id, dbPaymentStatus);
       
       if (!updatedTicket) {
         console.log(`Error al actualizar ticket ${id}. No se pudo completar la operación.`);
@@ -333,6 +336,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ message: 'Este número ya ha sido reservado por otra persona' });
       }
       
+      // Mapear 'apartado' a 'pendiente' para el enum PostgreSQL
+      const dbPaymentStatus = paymentStatus === 'apartado' ? 'pendiente' : 
+                               paymentStatus || 'pendiente'; // Si no se proporciona, usar 'pendiente'
+      
+      // Validar que el estado sea válido para el enum
+      if (!['pendiente', 'pagado', 'cancelado'].includes(dbPaymentStatus)) {
+        return res.status(400).json({ message: 'Estado de pago inválido' });
+      }
+      
       // Crear el nuevo ticket
       const newTicket = await storage.createTicket({
         raffleId,
@@ -341,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         email,
         phone,
-        paymentStatus
+        paymentStatus: dbPaymentStatus as any // Forzar el tipo para evitar errores
       });
       
       res.status(201).json(newTicket);
