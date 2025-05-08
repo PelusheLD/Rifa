@@ -578,6 +578,80 @@ function SeleccionarGanadorView() {
       setWinnerInfo(null);
     }
   };
+  
+  // Obtener la función para cambiar la ubicación
+  const [_, setLocation] = useLocation();
+  
+  // Función para registrar oficialmente al ganador
+  const handleRegisterWinner = async () => {
+    if (!winnerInfo || !selectedRaffleId) {
+      toast({
+        title: "Error",
+        description: "No hay información de ganador disponible",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Obtener información de la rifa para el premio
+    const selectedRaffle = raffles.find(raffle => raffle.id === selectedRaffleId);
+    if (!selectedRaffle) {
+      toast({
+        title: "Error",
+        description: "No se encontró información de la rifa",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      // Datos del ganador
+      const winnerData = {
+        raffleId: selectedRaffleId,
+        winnerName: winnerInfo.name,
+        ticketNumber: winnerInfo.number,
+        prize: selectedRaffle.title // Usar el título de la rifa como premio
+      };
+      
+      // Llamar a la API para registrar el ganador
+      const response = await fetch('/api/winners', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(winnerData)
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: "¡Ganador registrado con éxito!",
+          description: `${winnerInfo.name} ha sido registrado oficialmente como ganador`,
+          variant: "default"
+        });
+        
+        // Redireccionar a la lista de ganadores
+        setTimeout(() => {
+          setLocation('/admin/ganadores');
+        }, 2000);
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error al registrar ganador",
+          description: errorData.message || "Hubo un problema al registrar el ganador",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error al registrar ganador:", error);
+      toast({
+        title: "Error al registrar ganador",
+        description: "Hubo un problema de conexión al intentar registrar el ganador",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Renderizar la vista según el estado actual
   if (!selectedRaffleId) {

@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         winnerName,
         ticketNumber,
         prize,
-        announcedDate: new Date().toISOString(),
+        announcedDate: new Date().toISOString(), // la transformación a Date se hace en el schema
         claimed: false
       });
       

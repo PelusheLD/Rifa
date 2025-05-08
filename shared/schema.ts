@@ -104,6 +104,8 @@ export const insertWinnerSchema = createInsertSchema(winners).pick({
   ticketNumber: true,
   prize: true,
   claimed: true,
+}).extend({
+  announcedDate: z.string().optional().transform(str => str ? new Date(str) : new Date()),
 });
 
 export type InsertWinner = z.infer<typeof insertWinnerSchema>;
