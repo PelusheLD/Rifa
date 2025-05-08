@@ -30,8 +30,10 @@ export default function AdminLogin() {
   async function onSubmit(data: any) {
     setLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/admin/login", data);
-      const result = await response.json();
+      const result = await apiRequest<{token: string; user: any}>("/api/admin/login", {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
       
       if (result.token) {
         login(result.token, result.user);

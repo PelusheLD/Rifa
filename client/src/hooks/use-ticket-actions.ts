@@ -2,6 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "./use-toast";
 
+interface ApiSuccess {
+  success: boolean;
+}
+
 export function useTicketActions() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -9,11 +13,8 @@ export function useTicketActions() {
   // Mutación para liberar un ticket
   const releaseTicketMutation = useMutation({
     mutationFn: async (ticketId: number) => {
-      return await apiRequest<any>(`/api/tickets/${ticketId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      return apiRequest<ApiSuccess>(`/api/tickets/${ticketId}`, {
+        method: 'DELETE'
       });
     },
     onSuccess: (_, ticketId) => {
@@ -41,11 +42,8 @@ export function useTicketActions() {
   // Mutación para marcar un ticket como pagado
   const markAsPaidMutation = useMutation({
     mutationFn: async (ticketId: number) => {
-      return await apiRequest<any>(`/api/tickets/${ticketId}/payment-status`, {
+      return apiRequest<ApiSuccess>(`/api/tickets/${ticketId}/payment-status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ paymentStatus: 'pagado' })
       });
     },
