@@ -404,32 +404,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Obtener todos los ganadores
   app.get('/api/winners', async (req: Request, res: Response) => {
     try {
-      // Simulamos ganadores para pruebas ya que no hay ganadores reales aún
-      const winners = [
-        {
-          id: 1,
-          raffleId: 1,
-          winnerName: "Juan Pérez",
-          ticketNumber: 25,
-          prize: "Automóvil",
-          announcedDate: new Date(2023, 3, 20).toISOString(),
-          claimed: true
-        },
-        {
-          id: 2,
-          raffleId: 2,
-          winnerName: "María González",
-          ticketNumber: 88,
-          prize: "Viaje todo pagado",
-          announcedDate: new Date(2023, 5, 15).toISOString(),
-          claimed: false
-        }
-      ];
-      
+      const winners = await storage.getWinners();
       res.json(winners);
     } catch (error) {
       console.error('Error al obtener ganadores:', error);
       res.status(500).json({ message: 'Error al obtener ganadores' });
+    }
+  });
+
+  // Registrar un nuevo ganador
+  app.post('/api/winners', authenticateJWT, async (req: Request, res: Response) => {
+    try {
+      console.log('Intentando crear un ganador con datos:', req.body);
+      const { raffleId, winnerName, ticketNumber, prize } = req.body;
+      
+      if (!raffleId || !winnerName || !ticketNumber || !prize) {
+        return res.status(400).json({ message: 'Todos los campos son requeridos' });
+      }
+      
+      // Verificar que la rifa existe
+      const raffle = await storage.getRaffle(raffleId);
+      if (!raffle) {
+        return res.status(404).json({ message: 'Rifa no encontrada' });
+      }
+      
+      const newWinner = await storage.createWinner({
+        raffleId,
+        winnerName,
+        ticketNumber,
+        prize,
+        announcedDate: new Date().toISOString(),
+        claimed: false
+      });
+      
+      res.status(201).json(newWinner);
+    } catch (error) {
+      console.error('Error al registrar ganador:', error);
+      res.status(500).json({ message: 'Error al registrar ganador' });
     }
   });
 
