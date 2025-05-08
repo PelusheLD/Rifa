@@ -28,6 +28,16 @@ type APIResponse = {
   };
 };
 
+type RafflesResponse = {
+  data: Raffle[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
 // Tipo para la estructura de los tickets
 type Ticket = {
   id: number;
@@ -503,6 +513,274 @@ function GanadoresView() {
           <p className="text-gray-500">No hay ganadores para mostrar</p>
         </div>
       )}
+    </div>
+  );
+}
+
+// Componente para la selección de ganadores
+function SeleccionarGanadorView() {
+  const [selectedRaffleId, setSelectedRaffleId] = useState<number | null>(null);
+  const [winningNumber, setWinningNumber] = useState<number | null>(null);
+  const [winnerInfo, setWinnerInfo] = useState<Ticket | null>(null);
+  const { toast } = useToast();
+
+  // Consulta para obtener las rifas
+  const { data: rafflesData, isLoading: isLoadingRaffles } = useQuery<RafflesResponse>({
+    queryKey: ['/api/raffles'],
+    retry: 1,
+    staleTime: 30000,
+  });
+
+  // Consulta para obtener los tickets de una rifa específica
+  const { data: ticketsData, isLoading: isLoadingTickets } = useQuery<Ticket[]>({
+    queryKey: [`/api/raffles/${selectedRaffleId}/tickets`],
+    enabled: selectedRaffleId !== null,
+    retry: 1,
+    staleTime: 30000,
+  });
+
+  const raffles = rafflesData?.data || [];
+
+  // Función para seleccionar una rifa
+  const handleSelectRaffle = (raffleId: number) => {
+    setSelectedRaffleId(raffleId);
+    setWinningNumber(null);
+    setWinnerInfo(null);
+  };
+
+  // Función para buscar el ganador
+  const handleFindWinner = () => {
+    if (!winningNumber || !ticketsData) {
+      toast({
+        title: "Error",
+        description: "Debe seleccionar un número ganador válido",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Buscar el ticket con el número ganador
+    const winner = ticketsData.find(ticket => ticket.number === winningNumber);
+
+    if (winner) {
+      setWinnerInfo(winner);
+      toast({
+        title: "¡Ganador encontrado!",
+        description: `El ganador es ${winner.name}`,
+        variant: "default"
+      });
+    } else {
+      toast({
+        title: "No se encontró ganador",
+        description: "No hay ningún ticket con ese número",
+        variant: "destructive"
+      });
+      setWinnerInfo(null);
+    }
+  };
+
+  // Renderizar la vista según el estado actual
+  if (!selectedRaffleId) {
+    return (
+      <Card className="shadow-sm">
+        <CardContent className="p-6">
+          <h2 className="text-xl font-bold mb-4">Seleccionar Rifa</h2>
+          <Separator className="mb-6" />
+          
+          {isLoadingRaffles ? (
+            <div className="text-center py-8">
+              <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
+              <p className="text-gray-500">Cargando rifas...</p>
+            </div>
+          ) : raffles && raffles.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {raffles.map(raffle => (
+                <Card key={raffle.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleSelectRaffle(raffle.id)}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                        <i className="fas fa-award text-xl text-yellow-500"></i>
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-lg font-medium text-gray-900 mb-1 truncate">{raffle.title}</h3>
+                        <div className="flex items-center text-sm">
+                          <span className="text-gray-500 mr-2">
+                            <i className="fas fa-users mr-1"></i>
+                            {raffle.soldTickets || 0} participantes
+                          </span>
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            raffle.status === 'activa' 
+                              ? 'bg-green-100 text-green-800' 
+                              : raffle.status === 'proxima'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {raffle.status === 'activa' 
+                              ? 'Activa' 
+                              : raffle.status === 'proxima'
+                                ? 'Próxima'
+                                : 'Finalizada'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <i className="fas fa-ticket-alt text-4xl text-gray-300 mb-2"></i>
+              <p className="text-gray-500">No hay rifas disponibles</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Vista de selección de número ganador
+  const selectedRaffle = raffles.find(raffle => raffle.id === selectedRaffleId);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mr-2"
+          onClick={() => setSelectedRaffleId(null)}
+        >
+          <i className="fas fa-arrow-left mr-2"></i>
+          Volver a rifas
+        </Button>
+        
+        {selectedRaffle && (
+          <h2 className="text-xl font-semibold">
+            {selectedRaffle.title} - Seleccionar Ganador
+          </h2>
+        )}
+      </div>
+      
+      <Card className="shadow-sm">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Selección de número ganador</h3>
+          <Separator className="mb-6" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="winningNumber" className="block text-sm font-medium text-gray-700">
+                  Número Ganador:
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    id="winningNumber"
+                    type="number"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Ingrese el número ganador"
+                    min="1"
+                    max={selectedRaffle?.totalTickets || 100}
+                    value={winningNumber || ''}
+                    onChange={(e) => setWinningNumber(parseInt(e.target.value) || null)}
+                  />
+                  <Button
+                    variant="default"
+                    onClick={handleFindWinner}
+                    disabled={isLoadingTickets || winningNumber === null}
+                  >
+                    Buscar Ganador
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <i className="fas fa-info-circle text-yellow-500 mt-0.5"></i>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-yellow-800">Información</h3>
+                    <div className="mt-2 text-sm text-yellow-700">
+                      <p>
+                        Ingrese el número ganador de la rifa para buscar al participante que tiene ese boleto.
+                        Únicamente se podrán buscar números que hayan sido vendidos.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white border rounded-md p-6">
+              <h4 className="text-lg font-semibold mb-4">Información del Ganador</h4>
+              
+              {isLoadingTickets ? (
+                <div className="text-center py-8">
+                  <i className="fas fa-circle-notch fa-spin text-2xl text-gray-300 mb-2"></i>
+                  <p className="text-gray-500">Cargando tickets...</p>
+                </div>
+              ) : winnerInfo ? (
+                <div className="space-y-4">
+                  <div className="text-center bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+                    <i className="fas fa-trophy text-4xl text-yellow-500 mb-2"></i>
+                    <h3 className="text-lg font-semibold text-green-800">¡Ganador!</h3>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Nombre:</span>
+                      <span className="font-bold">{winnerInfo.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Cédula:</span>
+                      <span>{winnerInfo.cedula}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Número Ganador:</span>
+                      <span className="text-2xl font-bold text-yellow-500">{winnerInfo.number}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Email:</span>
+                      <span>{winnerInfo.email}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Teléfono:</span>
+                      <span>{winnerInfo.phone}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 font-medium">Estado:</span>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        winnerInfo.paymentStatus === 'pagado' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {winnerInfo.paymentStatus === 'pagado' ? 'Pagado' : 'Pendiente'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 mt-4 border-t border-gray-200">
+                    <Button className="w-full">
+                      <i className="fas fa-trophy mr-2"></i>
+                      Registrar como Ganador Oficial
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <i className="fas fa-user-circle text-4xl text-gray-300 mb-2"></i>
+                  <p className="text-gray-500">
+                    {winningNumber 
+                      ? 'No se encontró ningún ganador con ese número' 
+                      : 'Ingrese un número para buscar al ganador'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
