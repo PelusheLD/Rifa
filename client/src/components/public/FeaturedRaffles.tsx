@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQueries } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface FeaturedRafflesProps {
   raffles: any[];
@@ -10,7 +12,7 @@ interface FeaturedRafflesProps {
 
 export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesProps) {
   const formatCurrency = (amount: number) => {
-    return `$${amount} MXN / boleto`;
+    return `$${amount} USD / boleto`;
   };
 
   const formatDate = (dateString: string) => {
@@ -27,6 +29,25 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
       default:
         return "bg-gray-100 text-gray-800 border border-gray-200";
     }
+  };
+
+  // Consultar los tickets de cada rifa para precisión
+  const ticketsQueries = useQueries({
+    queries: raffles.map((raffle) => ({
+      queryKey: [`/api/raffles/${raffle.id}/tickets`],
+      queryFn: async () => await apiRequest(`/api/raffles/${raffle.id}/tickets`),
+      staleTime: 30000,
+      enabled: !!raffle.id,
+    })),
+  });
+
+  // Función para contar los boletos vendidos
+  const getSoldTicketsCount = (raffleId: number) => {
+    const raffleIndex = raffles.findIndex(r => r.id === raffleId);
+    const tickets = ticketsQueries[raffleIndex]?.data as any[] | undefined;
+    if (!tickets) return 0;
+    // Contar los tickets con estado pagado o apartado
+    return tickets.filter(t => t.paymentStatus === 'pagado' || t.paymentStatus === 'apartado').length;
   };
 
   return (
@@ -62,52 +83,61 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
             ))
           ) : raffles.length > 0 ? (
             // Mostrar las rifas si hay datos
-            raffles.map((raffle) => (
-              <Card key={raffle.id} className="overflow-hidden hover:shadow-xl transition border border-gray-200">
-                <div className="relative">
-                  <img 
-                    src={raffle.imageUrl || "https://images.unsplash.com/photo-1594077449791-15714a33e895?auto=format&fit=crop&w=600&h=350"} 
-                    alt={`Premio: ${raffle.title}`} 
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1594077449791-15714a33e895?auto=format&fit=crop&w=600&h=350";
-                    }}
-                  />
-                  <Badge className={`absolute top-3 right-3 ${getStatusColor(raffle.status)}`}>
-                    {raffle.status === 'activa' ? 'Activa' : 
-                     raffle.status === 'proxima' ? 'Próxima' : 'Finalizada'}
-                  </Badge>
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{raffle.title}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-2">{raffle.description}</p>
-                  <div className="flex flex-col space-y-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div 
-                        className="bg-primary-600 h-2.5 rounded-full" 
-                        style={{ width: `${Math.min(100, (raffle.soldTickets / raffle.totalTickets) * 100)}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-500">
-                      <span>{raffle.soldTickets} boletos vendidos</span>
-                      <span>de {raffle.totalTickets}</span>
-                    </div>
+            raffles.map((raffle) => {
+              const soldTickets = getSoldTicketsCount(raffle.id);
+              return (
+                <Card key={raffle.id} className="overflow-hidden hover:shadow-xl transition border border-gray-200">
+                  <div className="relative">
+                    <img 
+                      src={raffle.imageUrl || "https://images.unsplash.com/photo-1594077449791-15714a33e895?auto=format&fit=crop&w=600&h=350"} 
+                      alt={`Premio: ${raffle.title}`} 
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1594077449791-15714a33e895?auto=format&fit=crop&w=600&h=350";
+                      }}
+                    />
+                    <Badge className={`absolute top-3 right-3 ${getStatusColor(raffle.status)}`}>
+                      {raffle.status === 'activa' ? 'Activa' : 
+                       raffle.status === 'proxima' ? 'Próxima' : 'Finalizada'}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-primary-600 font-bold">{formatCurrency(raffle.price)}</span>
-                    <span className="text-gray-500 text-sm">{formatDate(raffle.endDate)}</span>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-6 pt-0">
-                  <Button 
-                    className="w-full bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-all border border-blue-600"
-                    onClick={() => window.location.href = `/comprar-boleto/${raffle.id}`}
-                  >
-                    Comprar boleto
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{raffle.title}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-2">{raffle.description}</p>
+                    <div className="flex flex-col space-y-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                          className="bg-primary-600 h-2.5 rounded-full transition-all duration-500" 
+                          style={{ width: `${
+                            raffle.totalTickets > 0
+                              ? soldTickets === 0
+                                ? 0
+                                : Math.max(5, Math.min(100, Math.round((soldTickets / raffle.totalTickets) * 100)))
+                              : 0
+                          }%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{soldTickets} boletos vendidos</span>
+                        <span>de {raffle.totalTickets}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-4">
+                      <span className="text-primary-600 font-bold">{formatCurrency(raffle.price)}</span>
+                      <span className="text-gray-500 text-sm">{formatDate(raffle.endDate)}</span>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="p-6 pt-0">
+                    <Button 
+                      className="w-full bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-all border border-blue-600"
+                      onClick={() => window.location.href = `/comprar-boleto/${raffle.id}`}
+                    >
+                      Comprar boleto
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })
           ) : (
             // Mostrar placeholders si no hay rifas
             <div className="col-span-3 text-center py-12 bg-gray-50 rounded-lg">

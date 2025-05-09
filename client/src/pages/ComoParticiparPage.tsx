@@ -66,7 +66,7 @@ export default function ComoParticiparPage() {
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">¿Cuántos boletos puedo comprar?</h3>
                   <p className="text-gray-600 mt-2">
-                    Puedes comprar hasta 10 boletos por transacción. Si deseas comprar más, puedes realizar múltiples transacciones.
+                    Puedes comprar todos los boletos que quieras , no hay limite.
                   </p>
                 </div>
                 
@@ -80,14 +80,14 @@ export default function ComoParticiparPage() {
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">¿Qué pasa si no se venden todos los boletos?</h3>
                   <p className="text-gray-600 mt-2">
-                    Si no se venden todos los boletos, la rifa se realizará igualmente en la fecha indicada. Garantizamos que todos los premios serán entregados.
+                    Si no se venden todos los boletos, la rifa se realizará igualmente al completar el 80% de los boletos vendidos. Garantizamos que todos los premios serán entregados.
                   </p>
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">¿Puedo participar desde cualquier lugar?</h3>
                   <p className="text-gray-600 mt-2">
-                    Sí, puedes participar desde cualquier lugar de México. Para participantes internacionales, consulta nuestros términos y condiciones para detalles específicos.
+                    Sí, puedes participar desde cualquier lugar de Venezuela. Para participantes internacionales, se les enviara el dinero del premio o el premio podrar ser entregado a algun amigo o familiar en Venezuela.
                   </p>
                 </div>
               </div>

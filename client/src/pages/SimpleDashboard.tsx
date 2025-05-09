@@ -3,11 +3,12 @@ import { useLocation, useRoute } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import RaffleManager from "@/components/admin/RaffleManager";
 import { apiRequest } from "@/lib/queryClient";
+import PageConfigForm from "@/components/admin/PageConfigForm";
 
 // Definición de tipos más simple
 type Raffle = {
@@ -98,16 +99,24 @@ function ParticipantTicketsView({
   const { releaseTicket, markTicketAsPaid, isReleasing, isMarkingAsPaid } = useTicketActions();
   const { toast } = useToast();
   
+  const { data: ticketsData, refetch } = useQuery<Ticket[]>({
+    queryKey: [`/api/raffles/${raffleId}/tickets`],
+    retry: 1,
+    staleTime: 30000,
+  });
+  
   // Manejar la liberación de un ticket
-  const handleReleaseTicket = (ticket: Ticket) => {
+  const handleReleaseTicket = async (ticket: Ticket) => {
     if (window.confirm(`¿Estás seguro de liberar el boleto #${ticket.number}? Esta acción no se puede deshacer.`)) {
-      releaseTicket(ticket.id, raffleId);
+      await releaseTicket(ticket.id, raffleId);
+      refetch();
     }
   };
   
   // Manejar el marcado como pagado
-  const handleMarkAsPaid = (ticket: Ticket) => {
-    markTicketAsPaid(ticket.id, raffleId);
+  const handleMarkAsPaid = async (ticket: Ticket) => {
+    await markTicketAsPaid(ticket.id, raffleId);
+    refetch();
   };
   
   return (
@@ -145,7 +154,7 @@ function ParticipantTicketsView({
         </div>
       </div>
       
-      {participant.tickets.length > 0 ? (
+      {ticketsData && ticketsData.length > 0 ? (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -158,7 +167,9 @@ function ParticipantTicketsView({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {participant.tickets.map((ticket) => (
+              {ticketsData
+                .filter(ticket => ticket.cedula === participant.cedula)
+                .map((ticket) => (
                 <tr key={ticket.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ticket.number}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -193,7 +204,6 @@ function ParticipantTicketsView({
                       >
                         Liberar
                       </Button>
-                      
                       {/* Botón para marcar como pagado (solo si no está pagado) */}
                       {ticket.paymentStatus !== 'pagado' && (
                         <Button
@@ -367,12 +377,30 @@ function RaffleListView({ onSelectRaffle }: { onSelectRaffle: (id: number) => vo
     staleTime: 30000,
     select: (data: any) => data.data || [],
   });
+
+  // Consultar los tickets de cada rifa
+  const ticketsQueries = useQueries({
+    queries: (raffles || []).map((raffle) => ({
+      queryKey: [`/api/raffles/${raffle.id}/tickets`],
+      queryFn: async () => await apiRequest(`/api/raffles/${raffle.id}/tickets`),
+      staleTime: 30000,
+      enabled: !!raffle.id,
+    })),
+  });
+
+  // Calcular participantes únicos por rifa
+  const getParticipantsCount = (raffleId: number) => {
+    const raffleIndex = (raffles || []).findIndex(r => r.id === raffleId);
+    const tickets = ticketsQueries[raffleIndex]?.data as Ticket[] | undefined;
+    if (!tickets) return 0;
+    const uniqueCedulas = new Set(tickets.map(t => t.cedula));
+    return uniqueCedulas.size;
+  };
   
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">Participantes por Rifa</h2>
       <Separator className="mb-4" />
-      
       {isLoading ? (
         <div className="text-center py-8">
           <i className="fas fa-circle-notch fa-spin text-3xl text-gray-300 mb-2"></i>
@@ -392,7 +420,7 @@ function RaffleListView({ onSelectRaffle }: { onSelectRaffle: (id: number) => vo
                     <div className="flex items-center text-sm">
                       <span className="text-gray-500 mr-2">
                         <i className="fas fa-users mr-1"></i>
-                        {raffle.soldTickets || 0} participantes
+                        {getParticipantsCount(raffle.id)} participantes
                       </span>
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         raffle.status === 'activa' 
@@ -472,17 +500,17 @@ function GanadoresView() {
         method: 'PATCH',
         body: JSON.stringify({ claimed: true })
       });
-      // Refrescar los datos
-      refetch();
-      toast({
-        title: "¡Éxito!",
-        description: "Premio marcado como reclamado",
-        variant: "default"
-      });
+        // Refrescar los datos
+        refetch();
+        toast({
+          title: "¡Éxito!",
+          description: "Premio marcado como reclamado",
+          variant: "default"
+        });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar el estado del premio",
+        toast({
+          title: "Error",
+          description: "No se pudo actualizar el estado del premio",
         variant: "destructive"
       });
     }
@@ -585,15 +613,36 @@ function SeleccionarGanadorView() {
     staleTime: 30000,
   });
 
-  // Consulta para obtener los tickets de una rifa específica
-  const { data: ticketsData, isLoading: isLoadingTickets } = useQuery<Ticket[]>({
-    queryKey: [`/api/raffles/${selectedRaffleId}/tickets`],
-    enabled: selectedRaffleId !== null,
-    retry: 1,
+  // Consultar los tickets de cada rifa
+  const raffles = rafflesData?.data || [];
+  const ticketsQueries = useQueries({
+    queries: raffles.map((raffle) => ({
+      queryKey: [`/api/raffles/${raffle.id}/tickets`],
+      queryFn: async () => await apiRequest(`/api/raffles/${raffle.id}/tickets`),
+    staleTime: 30000,
+      enabled: !!raffle.id,
+    })),
+  });
+
+  // Consultar ganadores
+  const { data: winners = [] } = useQuery<Winner[]>({
+    queryKey: ['/api/winners'],
     staleTime: 30000,
   });
 
-  const raffles = rafflesData?.data || [];
+  // Función para contar participantes únicos
+  const getParticipantsCount = (raffleId: number) => {
+    const raffleIndex = raffles.findIndex(r => r.id === raffleId);
+    const tickets = ticketsQueries[raffleIndex]?.data as Ticket[] | undefined;
+    if (!tickets) return 0;
+    const uniqueCedulas = new Set(tickets.map(t => t.cedula));
+    return uniqueCedulas.size;
+  };
+
+  // Función para saber si ya hay ganador
+  const getWinnerForRaffle = (raffleId: number) => {
+    return winners.find(w => w.raffleId === raffleId);
+  };
 
   // Función para seleccionar una rifa
   const handleSelectRaffle = (raffleId: number) => {
@@ -604,7 +653,7 @@ function SeleccionarGanadorView() {
 
   // Función para buscar el ganador
   const handleFindWinner = () => {
-    if (!winningNumber || !ticketsData) {
+    if (!winningNumber || selectedRaffleId === null) {
       toast({
         title: "Error",
         description: "Debe seleccionar un número ganador válido",
@@ -613,8 +662,18 @@ function SeleccionarGanadorView() {
       return;
     }
 
+    const tickets = ticketsQueries[selectedRaffleId - 1]?.data as Ticket[] | undefined;
+    if (!tickets) {
+      toast({
+        title: "Error",
+        description: "No hay tickets para esta rifa",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Buscar el ticket con el número ganador
-    const winner = ticketsData.find(ticket => ticket.number === winningNumber);
+    const winner = tickets.find((ticket: Ticket) => ticket.number === winningNumber);
 
     if (winner) {
       setWinnerInfo(winner);
@@ -672,18 +731,18 @@ function SeleccionarGanadorView() {
         method: 'POST',
         body: JSON.stringify(winnerData)
       });
-      toast({
-        title: "¡Ganador registrado con éxito!",
-        description: `${winnerInfo.name} ha sido registrado oficialmente como ganador`,
-        variant: "default"
-      });
-      // Redireccionar a la lista de ganadores
-      setTimeout(() => {
-        setLocation('/admin/ganadores');
-      }, 2000);
+        toast({
+          title: "¡Ganador registrado con éxito!",
+          description: `${winnerInfo.name} ha sido registrado oficialmente como ganador`,
+          variant: "default"
+        });
+        // Redireccionar a la lista de ganadores
+        setTimeout(() => {
+          setLocation('/admin/ganadores');
+        }, 2000);
     } catch (error: any) {
-      toast({
-        title: "Error al registrar ganador",
+        toast({
+          title: "Error al registrar ganador",
         description: error?.message || "Hubo un problema al registrar el ganador",
         variant: "destructive"
       });
@@ -705,8 +764,11 @@ function SeleccionarGanadorView() {
             </div>
           ) : raffles && raffles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {raffles.map(raffle => (
-                <Card key={raffle.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleSelectRaffle(raffle.id)}>
+              {raffles.map(raffle => {
+                const winner = getWinnerForRaffle(raffle.id);
+                const status = winner ? 'finalizada' : raffle.status;
+                return (
+                  <Card key={raffle.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => !winner && handleSelectRaffle(raffle.id)}>
                   <CardContent className="p-6">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-yellow-100 flex items-center justify-center">
@@ -717,27 +779,33 @@ function SeleccionarGanadorView() {
                         <div className="flex items-center text-sm">
                           <span className="text-gray-500 mr-2">
                             <i className="fas fa-users mr-1"></i>
-                            {raffle.soldTickets || 0} participantes
+                              {getParticipantsCount(raffle.id)} participantes
                           </span>
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            raffle.status === 'activa' 
+                              status === 'activa' 
                               ? 'bg-green-100 text-green-800' 
-                              : raffle.status === 'proxima'
+                                : status === 'proxima'
                                 ? 'bg-yellow-100 text-yellow-800'
                                 : 'bg-gray-100 text-gray-800'
                           }`}>
-                            {raffle.status === 'activa' 
+                              {status === 'activa' 
                               ? 'Activa' 
-                              : raffle.status === 'proxima'
+                                : status === 'proxima'
                                 ? 'Próxima'
                                 : 'Finalizada'}
                           </span>
                         </div>
+                          {winner && (
+                            <div className="mt-2 text-sm text-green-700 font-semibold">
+                              Ganador: {winner.winnerName} (Boleto #{winner.ticketNumber})
+                            </div>
+                          )}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8">
@@ -798,7 +866,7 @@ function SeleccionarGanadorView() {
                   <Button
                     variant="default"
                     onClick={handleFindWinner}
-                    disabled={isLoadingTickets || winningNumber === null}
+                    disabled={!selectedRaffle || winningNumber === null}
                   >
                     Buscar Ganador
                   </Button>
@@ -826,12 +894,7 @@ function SeleccionarGanadorView() {
             <div className="bg-white border rounded-md p-6">
               <h4 className="text-lg font-semibold mb-4">Información del Ganador</h4>
               
-              {isLoadingTickets ? (
-                <div className="text-center py-8">
-                  <i className="fas fa-circle-notch fa-spin text-2xl text-gray-300 mb-2"></i>
-                  <p className="text-gray-500">Cargando tickets...</p>
-                </div>
-              ) : winnerInfo ? (
+              {winnerInfo ? (
                 <div className="space-y-4">
                   <div className="text-center bg-green-50 border border-green-200 rounded-md p-4 mb-4">
                     <i className="fas fa-trophy text-4xl text-yellow-500 mb-2"></i>
@@ -1204,6 +1267,14 @@ export default function SimpleDashboard() {
               <i className="fas fa-award text-gray-400"></i>
               {isSidebarOpen && <span>Seleccionar Ganador</span>}
             </button>
+            
+            <button 
+              className="w-full px-4 py-3 flex items-center space-x-3 text-white hover:bg-gray-800 transition-colors"
+              onClick={() => setLocation('/admin/configurar-pagina')}
+            >
+              <i className="fas fa-cog text-gray-400"></i>
+              {isSidebarOpen && <span>Configurar página</span>}
+            </button>
           </nav>
         </div>
         
@@ -1241,6 +1312,7 @@ export default function SimpleDashboard() {
             {activeView === 'participantes' && 'Gestión de Participantes'}
             {activeView === 'ganadores' && 'Gestión de Ganadores'}
             {activeView === 'seleccionar-ganador' && 'Seleccionar Ganador'}
+            {activeView === 'configurar-pagina' && 'Configurar Página'}
           </h1>
           
           {/* Contenido según la vista seleccionada */}
@@ -1405,6 +1477,9 @@ export default function SimpleDashboard() {
           
           {/* Vista de Selección de Ganador */}
           {activeView === 'seleccionar-ganador' && <SeleccionarGanadorView />}
+          
+          {/* Vista de Configuración de Página */}
+          {activeView === 'configurar-pagina' && <PageConfigForm />}
         </main>
       </div>
     </div>

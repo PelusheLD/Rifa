@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious, PaginationLink } from "@/components/ui/pagination";
+import { apiRequest } from "@/lib/queryClient";
 
 type RaffleData = {
   id: number;
@@ -164,6 +165,21 @@ export default function ComprarBoletoPage() {
     }
   };
 
+  // Estado para la configuración global
+  const [pageConfig, setPageConfig] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const data = await apiRequest("/api/page-config");
+        setPageConfig(data);
+      } catch (e) {
+        setPageConfig(null);
+      }
+    }
+    fetchConfig();
+  }, []);
+
   // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,11 +216,13 @@ export default function ComprarBoletoPage() {
     // Si se guardó correctamente, dirigir a WhatsApp para finalizar la compra
     if (success) {
       // Crear mensaje para WhatsApp
-      const message = `Hola, he apartado los siguientes números para la rifa "${raffle?.title}": ${selectedNumbers.join(', ')}. Mis datos: Nombre: ${formData.name}, Cédula: ${formData.cedula}, Teléfono: ${formData.phone}, Email: ${formData.email}. Total a pagar: $${calculateTotal()} MXN`;
+      const message = `Hola, he apartado los siguientes números para la rifa "${raffle?.title}": ${selectedNumbers.join(', ')}. Mis datos: Nombre: ${formData.name}, Cédula: ${formData.cedula}, Teléfono: ${formData.phone}, Email: ${formData.email}. Total a pagar: $${calculateTotal()} $`;
       
       // Encode el mensaje para URL de WhatsApp
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/+5212345678?text=${encodedMessage}`;
+      // Usar el número de WhatsApp configurado en el admin
+      const wsNumber = pageConfig?.socialLinks?.whatsapp?.replace(/[^\d]/g, "");
+      const whatsappUrl = wsNumber ? `https://wa.me/${wsNumber}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
       
       // Abrir WhatsApp en nueva ventana
       window.open(whatsappUrl, '_blank');
@@ -291,7 +309,7 @@ export default function ComprarBoletoPage() {
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-700">Precio por boleto:</span>
-                        <span className="text-blue-700 font-bold">${raffle.price} MXN</span>
+                        <span className="text-blue-700 font-bold">{raffle.price} $</span>
                       </div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-700">Fecha de finalización:</span>
@@ -469,7 +487,7 @@ export default function ComprarBoletoPage() {
                           <div className="space-y-2">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Precio por boleto:</span>
-                              <span>${raffle?.price} MXN</span>
+                              <span>{raffle?.price} $</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Números seleccionados:</span>
@@ -492,7 +510,7 @@ export default function ComprarBoletoPage() {
                             <Separator className="my-2" />
                             <div className="flex justify-between font-bold">
                               <span className="text-gray-800">Total:</span>
-                              <span className="text-blue-700">${calculateTotal()} MXN</span>
+                              <span className="text-blue-700">{calculateTotal()} $</span>
                             </div>
                           </div>
                         </div>
@@ -511,7 +529,7 @@ export default function ComprarBoletoPage() {
                             type="submit"
                             className="bg-blue-700 text-white hover:bg-blue-600 flex-1"
                           >
-                            Comprar boletos - ${calculateTotal()} MXN
+                            Comprar boletos - ${calculateTotal()} $
                           </Button>
                         </div>
                       </div>

@@ -6,6 +6,11 @@ import MemoryStore from "memorystore";
 import jwt from "jsonwebtoken";
 import { adminLoginSchema, insertRaffleSchema } from "@shared/schema";
 import { z } from "zod";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || "rifas_online_secret_jwt";
@@ -465,6 +470,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error al actualizar ganador:", error);
       res.status(500).json({ message: "Error al actualizar ganador" });
+    }
+  });
+
+  // Endpoint para obtener la configuración de la página principal
+  app.get('/api/page-config', (req, res) => {
+    const configPath = path.join(__dirname, 'data', 'pageConfig.json');
+    try {
+      const config = fs.readFileSync(configPath, 'utf-8');
+      res.json(JSON.parse(config));
+    } catch (err) {
+      res.status(500).json({ message: 'No se pudo leer la configuración de la página.' });
+    }
+  });
+
+  // Endpoint para actualizar la configuración de la página principal (requiere autenticación admin)
+  app.put('/api/page-config', authenticateJWT, async (req, res) => {
+    const configPath = path.join(__dirname, 'data', 'pageConfig.json');
+    try {
+      fs.writeFileSync(configPath, JSON.stringify(req.body, null, 2), 'utf-8');
+      res.json({ message: 'Configuración actualizada correctamente.' });
+    } catch (err) {
+      res.status(500).json({ message: 'No se pudo actualizar la configuración de la página.' });
     }
   });
 

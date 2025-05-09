@@ -4,6 +4,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQueries } from "@tanstack/react-query";
 
 type RaffleData = {
   id: number;
@@ -42,6 +43,25 @@ export default function RaffleTable({
 }: RaffleTableProps) {
   const { toast } = useToast();
 
+  // Consultar los tickets de cada rifa
+  const ticketsQueries = useQueries({
+    queries: raffles.map((raffle) => ({
+      queryKey: [`/api/raffles/${raffle.id}/tickets`],
+      queryFn: async () => await apiRequest(`/api/raffles/${raffle.id}/tickets`),
+      staleTime: 30000,
+      enabled: !!raffle.id,
+    })),
+  });
+
+  // Función para contar los boletos vendidos
+  const getSoldTicketsCount = (raffleId: number) => {
+    const raffleIndex = raffles.findIndex(r => r.id === raffleId);
+    const tickets = ticketsQueries[raffleIndex]?.data as any[] | undefined;
+    if (!tickets) return 0;
+    // Contar los tickets con estado pagado o apartado
+    return tickets.filter(t => t.paymentStatus === 'pagado' || t.paymentStatus === 'apartado').length;
+  };
+
   const handleDelete = async (id: number) => {
     try {
       // Mostrar mensaje de carga
@@ -50,7 +70,7 @@ export default function RaffleTable({
         description: "Eliminando la rifa...",
       });
       
-      await apiRequest("DELETE", `/api/raffles/${id}`);
+      await apiRequest(`/api/raffles/${id}`, { method: "DELETE" });
       
       // Invalidar la caché para recargar los datos
       await queryClient.invalidateQueries({ queryKey: ['/api/raffles'] });
@@ -72,7 +92,7 @@ export default function RaffleTable({
   };
 
   const formatCurrency = (amount: number) => {
-    return `$${amount} MXN`;
+    return `${amount} $`;
   };
 
   const formatDate = (dateString: string) => {
@@ -177,7 +197,7 @@ export default function RaffleTable({
                     {formatCurrency(raffle.price)}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {raffle.soldTickets} / {raffle.totalTickets}
+                    {getSoldTicketsCount(raffle.id)} / {raffle.totalTickets}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(raffle.endDate)}

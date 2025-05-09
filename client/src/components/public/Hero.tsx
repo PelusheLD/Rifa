@@ -1,6 +1,32 @@
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Hero() {
+  const [config, setConfig] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const data = await apiRequest("/api/page-config");
+        setConfig(data);
+      } catch (e) {
+        setConfig(null);
+      }
+    }
+    fetchConfig();
+  }, []);
+
+  if (!config) {
+    return (
+      <div className="bg-gradient-to-r from-blue-700 to-blue-900 min-h-[400px] flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="text-2xl mb-2">Cargando...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative overflow-hidden py-20">
       {/* Formas decorativas */}
@@ -12,16 +38,16 @@ export default function Hero() {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col lg:flex-row items-center">
-          <div className="lg:w-1/2 mb-10 lg:mb-0">
+          <div className="lg:w-1/2 mb-10 lg:mb-0 lg:pl-24">
             <div className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium mb-6">
               ✨ Los mejores premios te esperan
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              La mejor plataforma de 
+              {config.title.split('rifas online')[0]}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500"> rifas online</span>
             </h1>
             <p className="text-white/90 text-lg mb-8 max-w-lg">
-              Participa en nuestras rifas con los premios más exclusivos y las mejores oportunidades para ganar grandes premios.
+              {config.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
@@ -42,18 +68,18 @@ export default function Hero() {
             
             <div className="mt-12 flex items-center space-x-8">
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">+1000</span>
-                <span className="text-white/80 text-sm">Ganadores</span>
+                <span className="text-3xl font-bold text-white">{config.highlight1.replace(/[^\d+]/g, '')}</span>
+                <span className="text-white/80 text-sm">{config.highlight1.replace(/^[^a-zA-Z]+/, '')}</span>
               </div>
               <div className="w-px h-10 bg-white/20"></div>
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">+5M</span>
-                <span className="text-white/80 text-sm">En premios</span>
+                <span className="text-3xl font-bold text-white">{config.highlight2.replace(/[^\d+]/g, '')}</span>
+                <span className="text-white/80 text-sm">{config.highlight2.replace(/^[^a-zA-Z]+/, '')}</span>
               </div>
               <div className="w-px h-10 bg-white/20"></div>
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">100%</span>
-                <span className="text-white/80 text-sm">Garantizado</span>
+                <span className="text-3xl font-bold text-white">{config.highlight3.replace(/[^\d+]/g, '')}</span>
+                <span className="text-white/80 text-sm">{config.highlight3.replace(/^[^a-zA-Z]+/, '')}</span>
               </div>
             </div>
           </div>
@@ -62,25 +88,14 @@ export default function Hero() {
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary-300 to-yellow-300 rounded-2xl blur opacity-50"></div>
               <img 
-                src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                src={config.heroImageUrl || "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"} 
                 alt="Boletos de rifa" 
-                className="relative rounded-2xl shadow-2xl max-w-full border-4 border-white/20 backdrop-blur-sm" 
+                className="relative rounded-2xl shadow-2xl max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl border-4 border-white/20 backdrop-blur-sm object-cover" 
+                style={{ maxHeight: '520px', width: '100%' }}
               />
               
               {/* Badge flotante */}
-              <div className="absolute -bottom-5 -left-5 bg-white px-4 py-2 rounded-lg shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="flex -space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">JL</div>
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">MR</div>
-                    <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs">AG</div>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Últimos ganadores</p>
-                    <p className="text-sm font-medium">¡Sé el próximo!</p>
-                  </div>
-                </div>
-              </div>
+              
             </div>
           </div>
         </div>

@@ -1,10 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Header() {
   const [_, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [config, setConfig] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const data = await apiRequest("/api/page-config");
+        setConfig(data);
+      } catch (e) {
+        setConfig(null);
+      }
+    }
+    fetchConfig();
+  }, []);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -20,31 +34,35 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <div 
-            className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center cursor-pointer"
+            className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={() => navigateTo('/')}
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              className="text-blue-900 w-5 h-5"
-            >
-              <rect x="3" y="5" width="18" height="14" rx="2" />
-              <path d="M3 10h18" />
-              <path d="M7 15h.01" />
-              <path d="M11 15h2" />
-            </svg>
+            {config && config.logoUrl ? (
+              <img src={config.logoUrl} alt="Logo" className="w-8 h-8 object-contain" />
+            ) : (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="text-blue-900 w-5 h-5"
+              >
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M3 10h18" />
+                <path d="M7 15h.01" />
+                <path d="M11 15h2" />
+              </svg>
+            )}
           </div>
           <h1 
             className="text-white text-xl font-bold cursor-pointer" 
             onClick={() => navigateTo('/')}
           >
             <span className="text-yellow-400">
-              RifasOnline
+              {config && config.title ? config.title : "RifasOnline"}
             </span>
           </h1>
         </div>
@@ -92,15 +110,6 @@ export default function Header() {
               Cómo Participar
             </a>
           </nav>
-          
-          <div className="flex items-center space-x-4">
-            <Button 
-              className="bg-blue-700 hover:bg-blue-600 text-white transition-all rounded-full px-5 py-2 text-sm font-medium border border-blue-600"
-              onClick={() => navigateTo('/admin-aut')}
-            >
-              Administrador
-            </Button>
-          </div>
         </div>
         
         {/* Botón de menú móvil */}
@@ -170,16 +179,6 @@ export default function Header() {
                 }}
               >
                 Cómo Participar
-              </a>
-              <a 
-                href="/admin-aut" 
-                className="bg-yellow-400 text-blue-900 hover:bg-yellow-300 py-2 px-3 rounded-lg text-center text-sm font-medium"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateTo('/admin-aut');
-                }}
-              >
-                Administrador
               </a>
             </nav>
           </div>

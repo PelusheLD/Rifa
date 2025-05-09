@@ -2,8 +2,11 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { createServer } from 'http';
 
 const app = express();
+const httpServer = createServer(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -74,3 +77,17 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
   });
 })();
+
+// Función serverless para Vercel
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Manejar la solicitud con Express
+  app(req, res);
+}
+
+// Iniciar el servidor solo si no estamos en un entorno serverless
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  httpServer.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
