@@ -79,10 +79,7 @@ app.use((req, res, next) => {
 })();
 
 // Función serverless para Vercel
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Manejar la solicitud con Express
-  app(req, res);
-}
+export default app;
 
 // Iniciar el servidor solo si no estamos en un entorno serverless
 if (process.env.NODE_ENV !== 'production') {
