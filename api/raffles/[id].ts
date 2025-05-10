@@ -16,6 +16,7 @@ function toCamelCaseRaffle(rifa: any) {
     endDate: rifa.end_date,
     status: rifa.status,
     createdAt: rifa.created_at,
+    updatedAt: rifa.updated_at || null,
   };
 }
 
@@ -53,6 +54,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         WHERE id = ${id}
         RETURNING *
       `;
+      if (!actualizada) {
+        return res.status(404).json({ error: 'Rifa no encontrada para actualizar' });
+      }
       res.status(200).json(toCamelCaseRaffle(actualizada));
     } else if (req.method === 'DELETE') {
       // Eliminar rifa
