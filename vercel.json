@@ -4,6 +4,10 @@
     { "src": "/api/participants", "dest": "/api/participants" },
     { "src": "/api/raffles", "dest": "/api/raffles" },
     { "src": "/api/raffles/(?<id>[^/]+)", "dest": "/api/raffles/[id]" },
-    { "src": "/api/page-config", "dest": "/api/page-config" }
+    { "src": "/api/page-config", "dest": "/api/page-config" },
+    { "src": "/api/admin/login", "dest": "/api/admin/login" },
+    { "src": "/api/admin/verify", "dest": "/api/admin/verify" },
+    { "src": "/api/winners", "dest": "/api/winners" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 } 
