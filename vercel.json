@@ -3,6 +3,7 @@
   "routes": [
     { "src": "/api/participants", "dest": "/api/participants" },
     { "src": "/api/raffles", "dest": "/api/raffles" },
-    { "src": "/api/raffles/(?<id>[^/]+)", "dest": "/api/raffles/[id]" }
+    { "src": "/api/raffles/(?<id>[^/]+)", "dest": "/api/raffles/[id]" },
+    { "src": "/api/page-config", "dest": "/api/page-config" }
   ]
 } 
