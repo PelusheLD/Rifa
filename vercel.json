@@ -8,6 +8,7 @@
     { "src": "/api/admin/login", "dest": "/api/admin/login" },
     { "src": "/api/admin/verify", "dest": "/api/admin/verify" },
     { "src": "/api/winners", "dest": "/api/winners" },
+    { "src": "/(.*)\\.(js|css|png|jpg|jpeg|svg|woff2|woff|ttf|ico)$", "dest": "/$1.$2" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 } 
