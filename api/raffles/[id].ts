@@ -3,6 +3,22 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
+function toCamelCaseRaffle(rifa: any) {
+  return {
+    id: rifa.id,
+    title: rifa.title,
+    description: rifa.description,
+    price: rifa.price,
+    totalTickets: rifa.total_tickets,
+    soldTickets: rifa.sold_tickets,
+    imageUrl: rifa.image_url,
+    prizeId: rifa.prize_id,
+    endDate: rifa.end_date,
+    status: rifa.status,
+    createdAt: rifa.created_at,
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
 
@@ -11,7 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Obtener rifa por ID
       const [rifa] = await sql`SELECT * FROM raffles WHERE id = ${id}`;
       if (!rifa) return res.status(404).json({ message: 'Rifa no encontrada' });
-      res.status(200).json(rifa);
+      res.status(200).json(toCamelCaseRaffle(rifa));
     } else if (req.method === 'PUT') {
       // Actualizar rifa
       const {
@@ -37,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         WHERE id = ${id}
         RETURNING *
       `;
-      res.status(200).json(actualizada);
+      res.status(200).json(toCamelCaseRaffle(actualizada));
     } else if (req.method === 'DELETE') {
       // Eliminar rifa
       await sql`DELETE FROM raffles WHERE id = ${id}`;
