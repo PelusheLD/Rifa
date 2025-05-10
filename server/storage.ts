@@ -79,28 +79,25 @@ export class DatabaseStorage implements IStorage {
   async getRaffles(page = 1, limit = 10, filter?: string): Promise<Raffle[]> {
     try {
       const offset = (page - 1) * limit;
-      
-      // Base query
-      let baseQuery = db.select().from(raffles);
-      
-      // Aplicar filtro si existe
       if (filter) {
         if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
-          baseQuery = db.select().from(raffles).where(eq(raffles.status, filter));
+          return await db.select().from(raffles)
+            .where(eq(raffles.status, filter))
+            .orderBy(desc(raffles.createdAt))
+            .limit(limit)
+            .offset(offset);
         } else {
-          baseQuery = db.select().from(raffles).where(like(raffles.title, `%${filter}%`));
+          return await db.select().from(raffles)
+            .where(like(raffles.title, `%${filter}%`))
+            .orderBy(desc(raffles.createdAt))
+            .limit(limit)
+            .offset(offset);
         }
       }
-      
-      // Ejecutar con orden, límite y offset
-      console.log("Ejecutando query de rifas");
-      const result = await baseQuery
+      return await db.select().from(raffles)
         .orderBy(desc(raffles.createdAt))
         .limit(limit)
         .offset(offset);
-      console.log("Query ejecutado exitosamente");
-      
-      return result;
     } catch (error) {
       console.error("Error en getRaffles:", error);
       throw error;
@@ -109,22 +106,18 @@ export class DatabaseStorage implements IStorage {
 
   async getTotalRaffles(filter?: string): Promise<number> {
     try {
-      // Base query para contar
-      let baseQuery = db.select().from(raffles);
-      
-      // Aplicar filtro si existe
       if (filter) {
         if (filter === 'activa' || filter === 'proxima' || filter === 'finalizada') {
-          baseQuery = db.select().from(raffles).where(eq(raffles.status, filter));
+          const results = await db.select().from(raffles)
+            .where(eq(raffles.status, filter));
+          return results.length;
         } else {
-          baseQuery = db.select().from(raffles).where(like(raffles.title, `%${filter}%`));
+          const results = await db.select().from(raffles)
+            .where(like(raffles.title, `%${filter}%`));
+          return results.length;
         }
       }
-      
-      console.log("Ejecutando query de conteo");
-      const results = await baseQuery;
-      console.log("Query de conteo ejecutado exitosamente, total:", results.length);
-      
+      const results = await db.select().from(raffles);
       return results.length;
     } catch (error) {
       console.error("Error en getTotalRaffles:", error);
@@ -227,7 +220,7 @@ export class DatabaseStorage implements IStorage {
       await db
         .update(raffles)
         .set({
-          soldTickets: (raffle.soldTickets || 0) + 1
+          soldTickets: (raffle.soldTickets ?? 0) + 1
         })
         .where(eq(raffles.id, ticket.raffleId));
     }
@@ -252,11 +245,11 @@ export class DatabaseStorage implements IStorage {
       if (deleted) {
         // Decrementamos el contador de boletos vendidos en la rifa
         const raffle = await this.getRaffle(ticket.raffleId);
-        if (raffle && raffle.soldTickets > 0) {
+        if (raffle && (raffle.soldTickets ?? 0) > 0) {
           await db
             .update(raffles)
             .set({
-              soldTickets: raffle.soldTickets - 1
+              soldTickets: (raffle.soldTickets ?? 0) - 1
             })
             .where(eq(raffles.id, ticket.raffleId));
         }
