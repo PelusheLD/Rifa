@@ -4,7 +4,7 @@ import { NowRequest, NowResponse } from '@vercel/node';
 
 const JWT_SECRET = process.env.JWT_SECRET || "rifas_online_secret_jwt";
 
-function authenticateJWT(req) {
+function authenticateJWT(req: NowRequest) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return false;
   const token = authHeader.split(' ')[1];
