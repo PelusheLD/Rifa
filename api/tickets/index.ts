@@ -1,6 +1,7 @@
 import { storage } from '../../server/storage';
+import { NowRequest, NowResponse } from '@vercel/node';
 
-export default async function handler(req, res) {
+export default async function handler(req: NowRequest, res: NowResponse) {
   if (req.method === 'GET') {
     try {
       const allTickets = await storage.getAllTickets();

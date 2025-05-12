@@ -1,6 +1,7 @@
 import { storage } from '../../server/storage';
 import { insertRaffleSchema } from '../../shared/schema';
 import jwt from 'jsonwebtoken';
+import { NowRequest, NowResponse } from '@vercel/node';
 
 const JWT_SECRET = process.env.JWT_SECRET || "rifas_online_secret_jwt";
 
@@ -16,7 +17,7 @@ function authenticateJWT(req, res) {
   }
 }
 
-export default async function handler(req, res) {
+export default async function handler(req: NowRequest, res: NowResponse) {
   if (req.method === 'GET') {
     try {
       const page = parseInt(req.query.page as string) || 1;

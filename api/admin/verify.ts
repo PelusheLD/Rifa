@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
+import { NowRequest, NowResponse } from '@vercel/node';
 
 const JWT_SECRET = process.env.JWT_SECRET || "rifas_online_secret_jwt";
 
-export default function handler(req, res) {
+export default function handler(req: NowRequest, res: NowResponse) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);

@@ -1,6 +1,7 @@
 import { storage } from '../../../server/storage';
+import { NowRequest, NowResponse } from '@vercel/node';
 
-export default async function handler(req, res) {
+export default async function handler(req: NowRequest, res: NowResponse) {
   const raffleId = parseInt(req.query.raffleId as string);
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
