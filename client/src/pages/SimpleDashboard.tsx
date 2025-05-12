@@ -108,15 +108,19 @@ function ParticipantTicketsView({
   const handleReleaseTicket = async (ticket: Ticket) => {
     if (window.confirm(`¿Estás seguro de liberar el boleto #${ticket.number}? Esta acción no se puede deshacer.`)) {
       await releaseTicket(ticket.id, raffleId);
-      window.location.reload();
+      refetch();
     }
   };
   
   // Manejar el marcado como pagado
   const handleMarkAsPaid = async (ticket: Ticket) => {
     await markTicketAsPaid(ticket.id, raffleId);
-    window.location.reload();
+    refetch();
   };
+  
+  const participantTickets = tickets
+    ? tickets.filter(ticket => ticket.cedula === participant.cedula)
+    : [];
   
   return (
     <div>
@@ -153,7 +157,7 @@ function ParticipantTicketsView({
         </div>
       </div>
       
-      {participant.tickets.length > 0 ? (
+      {participantTickets && participantTickets.length > 0 ? (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -166,7 +170,7 @@ function ParticipantTicketsView({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {participant.tickets.map((ticket) => (
+              {participantTickets.map((ticket) => (
                 <tr key={ticket.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ticket.number}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -201,7 +205,6 @@ function ParticipantTicketsView({
                       >
                         Liberar
                       </Button>
-                      
                       {/* Botón para marcar como pagado (solo si no está pagado) */}
                       {ticket.paymentStatus !== 'pagado' && (
                         <Button
