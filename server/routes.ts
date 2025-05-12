@@ -415,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar un nuevo ganador
   app.post('/api/winners', authenticateJWT, async (req: Request, res: Response) => {
     try {
-      console.log('Intentando crear un ganador con datos:', req.body);
+      console.log('Body recibido en /api/winners:', req.body);
       const { raffleId, winnerName, ticketNumber, prize } = req.body;
       
       if (!raffleId || !winnerName || !ticketNumber || !prize) {
@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         winnerName,
         ticketNumber,
         prize,
-        announcedDate: new Date().toISOString(), // la transformación a Date se hace en el schema
+        announcedDate: new Date(),
         claimed: false
       });
       
@@ -441,6 +441,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error al registrar ganador:', error);
       res.status(500).json({ message: 'Error al registrar ganador' });
+    }
+  });
+
+  // Marcar ganador como reclamado
+  app.patch('/api/winners/:id/claim', authenticateJWT, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedWinner = await storage.updateWinner(id, true);
+      if (!updatedWinner) {
+        return res.status(404).json({ message: 'Ganador no encontrado' });
+      }
+      res.json(updatedWinner);
+    } catch (error) {
+      console.error('Error al marcar como reclamado:', error);
+      res.status(500).json({ message: 'Error al marcar como reclamado' });
     }
   });
 

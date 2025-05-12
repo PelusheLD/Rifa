@@ -50,7 +50,9 @@ export default function RaffleTable({
         description: "Eliminando la rifa...",
       });
       
-      await apiRequest("DELETE", `/api/raffles/${id}`);
+      await apiRequest(`/api/raffles/${id}`, {
+        method: "DELETE"
+      });
       
       // Invalidar la caché para recargar los datos
       await queryClient.invalidateQueries({ queryKey: ['/api/raffles'] });

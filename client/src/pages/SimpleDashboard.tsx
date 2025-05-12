@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import RaffleManager from "@/components/admin/RaffleManager";
+import { queryClient } from "@/lib/queryClient";
 
 // Definición de tipos más simple
 type Raffle = {
@@ -82,12 +83,17 @@ import { useTicketActions } from "@/hooks/use-ticket-actions";
 function ParticipantTicketsView({ 
   raffleId, 
   participant, 
-  onBack 
+  onBack
 }: { 
   raffleId: number, 
   participant: ParticipantSummary, 
-  onBack: () => void 
+  onBack: () => void
 }) {
+  const { data: tickets, refetch } = useQuery<Ticket[]>({
+    queryKey: [`/api/raffles/${raffleId}/tickets`],
+    retry: 1,
+    staleTime: 30000,
+  });
   const { data: raffleData } = useQuery<Raffle>({
     queryKey: [`/api/raffles/${raffleId}`],
     retry: 1,
@@ -96,17 +102,20 @@ function ParticipantTicketsView({
   
   const { releaseTicket, markTicketAsPaid, isReleasing, isMarkingAsPaid } = useTicketActions();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   
   // Manejar la liberación de un ticket
-  const handleReleaseTicket = (ticket: Ticket) => {
+  const handleReleaseTicket = async (ticket: Ticket) => {
     if (window.confirm(`¿Estás seguro de liberar el boleto #${ticket.number}? Esta acción no se puede deshacer.`)) {
-      releaseTicket(ticket.id, raffleId);
+      await releaseTicket(ticket.id, raffleId);
+      window.location.reload();
     }
   };
   
   // Manejar el marcado como pagado
-  const handleMarkAsPaid = (ticket: Ticket) => {
-    markTicketAsPaid(ticket.id, raffleId);
+  const handleMarkAsPaid = async (ticket: Ticket) => {
+    await markTicketAsPaid(ticket.id, raffleId);
+    window.location.reload();
   };
   
   return (
@@ -470,10 +479,8 @@ function GanadoresView() {
       const response = await fetch(`/api/winners/${winnerId}/claim`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ claimed: true })
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
       });
       
       if (response.ok) {
@@ -686,7 +693,7 @@ function SeleccionarGanadorView() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify(winnerData)
       });
