@@ -62,25 +62,10 @@ export default function Hero() {
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary-300 to-yellow-300 rounded-2xl blur opacity-50"></div>
               <img 
-                src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                src="https://i.pinimg.com/736x/f9/df/e4/f9dfe40bc98a35f738e4fd6a4ac2b0c6.jpg" 
                 alt="Boletos de rifa" 
                 className="relative rounded-2xl shadow-2xl max-w-full border-4 border-white/20 backdrop-blur-sm" 
               />
-              
-              {/* Badge flotante */}
-              <div className="absolute -bottom-5 -left-5 bg-white px-4 py-2 rounded-lg shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="flex -space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">JL</div>
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">MR</div>
-                    <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs">AG</div>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Últimos ganadores</p>
-                    <p className="text-sm font-medium">¡Sé el próximo!</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
