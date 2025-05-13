@@ -17,7 +17,7 @@ export default function Footer() {
                 </span>
               </h3>
             </div>
-            <p className="text-gray-300 max-w-md">La plataforma líder de rifas online en México. Ofrecemos una experiencia segura, transparente y emocionante para todos nuestros participantes.</p>
+            <p className="text-gray-300 max-w-md">Participa y gana en nuestras rifas online. Ofrecemos una experiencia segura, transparente y emocionante para todos nuestros participantes.</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">

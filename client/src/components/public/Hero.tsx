@@ -42,18 +42,15 @@ export default function Hero() {
             
             <div className="mt-12 flex items-center space-x-8">
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">+1000</span>
-                <span className="text-white/80 text-sm">Ganadores</span>
+                <span className="text-3xl font-bold text-white">Participa</span>
               </div>
               <div className="w-px h-10 bg-white/20"></div>
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">+5M</span>
-                <span className="text-white/80 text-sm">En premios</span>
+                <span className="text-3xl font-bold text-white">Gana</span>
               </div>
               <div className="w-px h-10 bg-white/20"></div>
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white">100%</span>
-                <span className="text-white/80 text-sm">Garantizado</span>
+                <span className="text-3xl font-bold text-white">Disfruta</span>
               </div>
             </div>
           </div>
