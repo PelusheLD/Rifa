@@ -4,7 +4,7 @@ import {
   type Raffle, type InsertRaffle,
   type Ticket, type InsertTicket,
   type Winner, type InsertWinner
-} from "@shared/schema";
+} from "../shared/schema.js";
 import { db } from "./db";
 import { eq, and, desc, asc, like, inArray } from "drizzle-orm";
 import bcrypt from "bcryptjs";

@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import jwt from "jsonwebtoken";
-import { adminLoginSchema, insertRaffleSchema } from "@shared/schema";
+import { adminLoginSchema, insertRaffleSchema } from "../shared/schema.js";
 import { z } from "zod";
 
 // JWT Secret
