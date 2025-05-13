@@ -51,7 +51,7 @@ export default function RifasActivasPage() {
   const totalPages = rafflesData?.pagination?.totalPages || 1;
 
   const formatCurrency = (amount: number) => {
-    return `$${amount} MXN / boleto`;
+    return `${amount} $ / boleto`;
   };
 
   const formatDate = (dateString: string) => {

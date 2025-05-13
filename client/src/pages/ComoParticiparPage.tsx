@@ -66,28 +66,28 @@ export default function ComoParticiparPage() {
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">¿Cuántos boletos puedo comprar?</h3>
                   <p className="text-gray-600 mt-2">
-                    Puedes comprar hasta 10 boletos por transacción. Si deseas comprar más, puedes realizar múltiples transacciones.
+                    puedes comprar todos los boletos que quieras. no hay limite.
                   </p>
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">¿Cómo recibo mi premio?</h3>
                   <p className="text-gray-600 mt-2">
-                    Dependiendo del premio, puede ser enviado a tu domicilio o puedes recogerlo en nuestras oficinas. Los detalles específicos se coordinarán contigo si resultas ganador.
+                    Dependiendo del premio, puede ser enviado a tu domicilio. Los detalles específicos se coordinarán contigo si resultas ganador.
                   </p>
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">¿Qué pasa si no se venden todos los boletos?</h3>
                   <p className="text-gray-600 mt-2">
-                    Si no se venden todos los boletos, la rifa se realizará igualmente en la fecha indicada. Garantizamos que todos los premios serán entregados.
+                    Si no se venden todos los boletos, la rifa se realizará igualmente al concretar la venta del 80% de los boletos. Garantizamos que todos los premios serán entregados.
                   </p>
                 </div>
                 
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">¿Puedo participar desde cualquier lugar?</h3>
                   <p className="text-gray-600 mt-2">
-                    Sí, puedes participar desde cualquier lugar de México. Para participantes internacionales, consulta nuestros términos y condiciones para detalles específicos.
+                    Sí, puedes participar desde cualquier lugar de Venezuela. Para participantes internacionales los premios pueden ser entregados a familiares o amigos en Venezuela o se hace envio del dinero, consulta nuestros términos y condiciones para detalles específicos.
                   </p>
                 </div>
               </div>
@@ -102,7 +102,6 @@ export default function ComoParticiparPage() {
                 <li>Debes ser mayor de 18 años para participar.</li>
                 <li>La fecha del sorteo puede estar sujeta a cambios, los cuales serán notificados con anticipación.</li>
                 <li>Los boletos no son reembolsables ni transferibles.</li>
-                <li>Los premios no pueden ser cambiados por su valor en efectivo.</li>
                 <li>Los ganadores tienen 30 días para reclamar su premio después de ser notificados.</li>
                 <li>RifasOnline se reserva el derecho de modificar estos términos en cualquier momento.</li>
               </ul>

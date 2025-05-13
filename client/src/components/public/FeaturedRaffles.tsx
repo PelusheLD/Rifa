@@ -10,7 +10,7 @@ interface FeaturedRafflesProps {
 
 export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesProps) {
   const formatCurrency = (amount: number) => {
-    return `$${amount} MXN / boleto`;
+    return `${amount} $ / boleto`;
   };
 
   const formatDate = (dateString: string) => {
