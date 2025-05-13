@@ -1,5 +1,5 @@
 import { storage } from '../../server/storage.js';
-import { insertRaffleSchema } from '../../shared/schema';
+import { insertRaffleSchema } from '../../shared/schema.js';
 import jwt from 'jsonwebtoken';
 import { NowRequest, NowResponse } from '@vercel/node';
 
