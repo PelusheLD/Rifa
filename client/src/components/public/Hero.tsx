@@ -62,10 +62,11 @@ export default function Hero() {
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary-300 to-yellow-300 rounded-2xl blur opacity-50"></div>
               <img 
-                src="https://i.pinimg.com/736x/f9/df/e4/f9dfe40bc98a35f738e4fd6a4ac2b0c6.jpg" 
-                alt="Boletos de rifa" 
-                className="relative rounded-2xl shadow-2xl max-w-full border-4 border-white/20 backdrop-blur-sm" 
-              />
+  src="https://i.pinimg.com/736x/f9/df/e4/f9dfe40bc98a35f738e4fd6a4ac2b0c6.jpg" 
+  alt="Boletos de rifa" 
+  className="w-64 h-auto rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm" 
+/>
+
             </div>
           </div>
         </div>
