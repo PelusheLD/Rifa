@@ -1,4 +1,4 @@
-import { storage } from '../../server/storage';
+import { storage } from '../../server/storage.js';
 import jwt from 'jsonwebtoken';
 import { NowRequest, NowResponse } from '@vercel/node';
 
