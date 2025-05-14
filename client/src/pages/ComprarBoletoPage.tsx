@@ -200,7 +200,7 @@ export default function ComprarBoletoPage() {
     // Si se guardó correctamente, dirigir a WhatsApp para finalizar la compra
     if (success) {
       // Crear mensaje para WhatsApp
-      const message = `Hola, he apartado los siguientes números para la rifa "${raffle?.title}": ${selectedNumbers.join(', ')}. Mis datos: Nombre: ${formData.name}, Cédula: ${formData.cedula}, Teléfono: ${formData.phone}, Email: ${formData.email}. Total a pagar: $${calculateTotal()} MXN`;
+      const message = `Hola, he apartado los siguientes números para la rifa "${raffle?.title}": ${selectedNumbers.join(', ')}. Mis datos: Nombre: ${formData.name}, Cédula: ${formData.cedula}, Teléfono: ${formData.phone}, Email: ${formData.email}. Total a pagar: ${calculateTotal()} $`;
       
       // Encode el mensaje para URL de WhatsApp
       const encodedMessage = encodeURIComponent(message);
@@ -291,7 +291,7 @@ export default function ComprarBoletoPage() {
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-700">Precio por boleto:</span>
-                        <span className="text-blue-700 font-bold">${raffle.price} MXN</span>
+                        <span className="text-blue-700 font-bold">{raffle.price} $</span>
                       </div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-700">Fecha de finalización:</span>
@@ -469,7 +469,7 @@ export default function ComprarBoletoPage() {
                           <div className="space-y-2">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Precio por boleto:</span>
-                              <span>${raffle?.price} MXN</span>
+                              <span>{raffle?.price} $</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Números seleccionados:</span>
@@ -492,7 +492,7 @@ export default function ComprarBoletoPage() {
                             <Separator className="my-2" />
                             <div className="flex justify-between font-bold">
                               <span className="text-gray-800">Total:</span>
-                              <span className="text-blue-700">${calculateTotal()} MXN</span>
+                              <span className="text-blue-700">{calculateTotal()} $</span>
                             </div>
                           </div>
                         </div>
@@ -511,7 +511,7 @@ export default function ComprarBoletoPage() {
                             type="submit"
                             className="bg-blue-700 text-white hover:bg-blue-600 flex-1"
                           >
-                            Comprar boletos - ${calculateTotal()} MXN
+                            Comprar boletos - {calculateTotal()} $
                           </Button>
                         </div>
                       </div>

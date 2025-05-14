@@ -33,13 +33,25 @@ export default async function handler(req: NowRequest, res: NowResponse) {
       }
       const raffle = await storage.getRaffle(raffleId);
       if (!raffle) return res.status(404).json({ message: 'Rifa no encontrada' });
+      console.log('Raffle:', raffle);
+      console.log('raffle.imageUrl:', raffle.imageUrl);
+      console.log('Objeto ganador a insertar:', {
+        raffleId,
+        winnerName,
+        ticketNumber,
+        prize,
+        announcedDate: new Date(),
+        claimed: false,
+        prizeImage: raffle.imageUrl
+      });
       const newWinner = await storage.createWinner({
         raffleId,
         winnerName,
         ticketNumber,
         prize,
         announcedDate: new Date(),
-        claimed: false
+        claimed: false,
+        prizeImage: raffle.imageUrl
       });
       res.status(201).json(newWinner);
     } catch {

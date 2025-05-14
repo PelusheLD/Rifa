@@ -3,75 +3,48 @@ import Footer from "@/components/public/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-// Datos simulados para la demostración
-const winnersData = [
-  {
-    id: 1,
-    name: "Juan López",
-    ticketNumber: "A-12345",
-    raffleTitle: "Gran Sorteo de Primavera",
-    raffleId: 1,
-    prize: "iPhone 13 Pro Max",
-    date: "2023-05-15",
-    image: "https://images.unsplash.com/photo-1603921326210-6edd2d60ca68?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80"
-  },
-  {
-    id: 2,
-    name: "María Rodríguez",
-    ticketNumber: "B-67890",
-    raffleTitle: "Sorteo Mensual",
-    raffleId: 2,
-    prize: "Smart TV 55\"",
-    date: "2023-04-10",
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80"
-  },
-  {
-    id: 3,
-    name: "Carlos Gómez",
-    ticketNumber: "C-24680",
-    raffleTitle: "Rifa Especial de Verano",
-    raffleId: 3,
-    prize: "Laptop Gaming",
-    date: "2023-06-22",
-    image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80"
-  },
-  {
-    id: 4,
-    name: "Ana García",
-    ticketNumber: "D-13579",
-    raffleTitle: "Sorteo de Aniversario",
-    raffleId: 4,
-    prize: "Viaje a Cancún",
-    date: "2023-03-05",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80"
-  },
-  {
-    id: 5,
-    name: "Pedro Sánchez",
-    ticketNumber: "E-97531",
-    raffleTitle: "Gran Sorteo Navideño",
-    raffleId: 5,
-    prize: "PlayStation 5",
-    date: "2022-12-24",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80"
-  },
-  {
-    id: 6,
-    name: "Laura Torres",
-    ticketNumber: "F-28461",
-    raffleTitle: "Sorteo de Año Nuevo",
-    raffleId: 6,
-    prize: "Set de Cocina Profesional",
-    date: "2023-01-05",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80"
-  }
-];
+// Definición local del tipo Raffle
+type Raffle = {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  totalTickets: number;
+  soldTickets: number;
+  imageUrl: string;
+  // Agrega otros campos si los necesitas
+};
 
 export default function GanadoresPage() {
   const [_, setLocation] = useLocation();
   const [filter, setFilter] = useState("todos"); // "todos", "mes", "semestre", "año"
+  const [winners, setWinners] = useState([]);
+  const [raffles, setRaffles] = useState<Record<number, Raffle>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/winners")
+      .then(res => res.json())
+      .then(async data => {
+        setWinners(data);
+        // Obtener todas las rifas únicas de los ganadores
+        const raffleIds = Array.from(new Set(data.map((w: any) => w.raffleId))) as number[];
+        const rafflesObj: Record<number, Raffle> = {};
+        // Obtener los datos de cada rifa
+        await Promise.all(raffleIds.map(async (id) => {
+          const res = await fetch(`/api/raffles/${id}`);
+          if (res.ok) {
+            const raffle = await res.json();
+            rafflesObj[id] = raffle;
+          }
+        }));
+        setRaffles(rafflesObj);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   // Filtrar los ganadores según el período seleccionado
   const getFilteredWinners = () => {
@@ -80,9 +53,8 @@ export default function GanadoresPage() {
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
     const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
 
-    return winnersData.filter(winner => {
+    return winners.filter((winner: any) => {
       const winnerDate = new Date(winner.date);
-      
       switch (filter) {
         case "mes":
           return winnerDate >= oneMonthAgo;
@@ -99,11 +71,14 @@ export default function GanadoresPage() {
   const filteredWinners = getFilteredWinners();
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
+    const date = new Date(dateString);
+    return isNaN(date.getTime())
+      ? "Sin fecha"
+      : date.toLocaleDateString('es-ES', {
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        });
   };
 
   return (
@@ -155,29 +130,33 @@ export default function GanadoresPage() {
 
           {/* Lista de ganadores */}
           <div className="max-w-4xl mx-auto">
-            {filteredWinners.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-16 bg-white rounded-xl shadow-sm">
+                <span className="text-gray-500">Cargando ganadores...</span>
+              </div>
+            ) : filteredWinners.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredWinners.map(winner => (
+                {filteredWinners.map((winner: any) => (
                   <Card key={winner.id} className="overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
                     <CardContent className="p-0">
                       <div className="flex flex-col sm:flex-row">
                         <div className="sm:w-1/3">
                           <img 
-                            src={winner.image}
-                            alt={`Ganador: ${winner.name}`}
+                            src={raffles[winner.raffleId]?.imageUrl || "/default-prize.jpg"}
+                            alt={`Premio: ${winner.prize || winner.premio}`}
                             className="w-full h-full object-cover sm:h-40 md:h-full"
                           />
                         </div>
                         <div className="p-6 sm:w-2/3">
                           <div className="text-sm text-gray-500 mb-1">{formatDate(winner.date)}</div>
-                          <h3 className="text-xl font-bold text-gray-800 mb-1">{winner.name}</h3>
-                          <p className="text-blue-700 font-medium mb-2">{winner.prize}</p>
+                          <h3 className="text-xl font-bold text-gray-800 mb-1">{winner.name || winner.nombre}</h3>
+                          <p className="text-blue-700 font-medium mb-2">{winner.prize || winner.premio}</p>
                           <p className="text-gray-600 text-sm mb-3">
-                            Rifa: {winner.raffleTitle}
+                            Rifa: {winner.raffleTitle || winner.rifa || winner.raffle}
                           </p>
                           <div className="flex items-center">
                             <div className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                              Boleto #{winner.ticketNumber}
+                              Boleto #{winner.ticketNumber || winner.boleto || winner.ticket}
                             </div>
                           </div>
                         </div>
