@@ -44,7 +44,7 @@ export default function Header() {
             onClick={() => navigateTo('/')}
           >
             <span className="text-yellow-400">
-              RifasOnline
+              Rueda y Gana
             </span>
           </h1>
         </div>

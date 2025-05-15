@@ -10,15 +10,15 @@ export default function Hero() {
         <div className="absolute top-1/2 left-1/3 bg-primary-500/10 w-64 h-64 rounded-full -translate-y-1/2 -translate-x-1/2 blur-xl"></div>
       </div>
       
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto pl-30 px-4 relative z-10">
         <div className="flex flex-col lg:flex-row items-center">
-          <div className="lg:w-1/2 mb-10 lg:mb-0">
+          <div className="lg:w-1/2 mb-10 lg:mb-0 lg:pl-24">
             <div className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium mb-6">
               ✨ Los mejores premios te esperan
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               La mejor plataforma de 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500"> rifas online</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500"> Rueda y Gana</span>
             </h1>
             <p className="text-white/90 text-lg mb-8 max-w-lg">
               Participa en nuestras rifas con los premios más exclusivos y las mejores oportunidades para ganar grandes premios.

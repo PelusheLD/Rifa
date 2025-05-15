@@ -12,8 +12,8 @@ export default function Footer() {
                 <i className="fas fa-ticket-alt text-white text-xl"></i>
               </div>
               <h3 className="text-xl font-bold">
-                <span className="bg-gradient-to-r from-primary-400 to-primary-300 text-transparent bg-clip-text">
-                  RifasOnline
+                <span className="bg-gradient-to-r from-primary-400 text-white 300 to-primary-300 text-transparent bg-clip-text">
+                  Rueda y Gana
                 </span>
               </h3>
             </div>
@@ -47,24 +47,21 @@ export default function Footer() {
                   <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center mr-2">
                     <i className="fas fa-envelope text-primary-300"></i>
                   </div>
-                  contacto@rifasonline.com
+                  Mich.linarez@gmail.com
                 </li>
                 <li className="text-gray-300 flex items-center">
                   <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center mr-2">
                     <i className="fas fa-phone text-primary-300"></i>
                   </div>
-                  +52 123 456 7890
+                  +58 426-3371456
                 </li>
               </ul>
               <div className="mt-6 flex space-x-4">
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-primary-300 hover:bg-primary-600 hover:text-white transition-colors">
+                <a href="https://www.facebook.com/Mich.linarez" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-primary-300 hover:bg-primary-600 hover:text-white transition-colors">
                   <i className="fab fa-facebook-f"></i>
                 </a>
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-primary-300 hover:bg-primary-600 hover:text-white transition-colors">
+                <a href="https://www.instagram.com/michellesoy" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-primary-300 hover:bg-primary-600 hover:text-white transition-colors">
                   <i className="fab fa-instagram"></i>
-                </a>
-                <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-primary-300 hover:bg-primary-600 hover:text-white transition-colors">
-                  <i className="fab fa-twitter"></i>
                 </a>
               </div>
             </div>
