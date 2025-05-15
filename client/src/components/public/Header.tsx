@@ -94,12 +94,7 @@ export default function Header() {
           </nav>
           
           <div className="flex items-center space-x-4">
-            <Button 
-              className="bg-blue-700 hover:bg-blue-600 text-white transition-all rounded-full px-5 py-2 text-sm font-medium border border-blue-600"
-              onClick={() => navigateTo('/admin-aut')}
-            >
-              Administrador
-            </Button>
+            {/* Botón de administrador eliminado */}
           </div>
         </div>
         
@@ -171,16 +166,7 @@ export default function Header() {
               >
                 Cómo Participar
               </a>
-              <a 
-                href="/admin-aut" 
-                className="bg-yellow-400 text-blue-900 hover:bg-yellow-300 py-2 px-3 rounded-lg text-center text-sm font-medium"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateTo('/admin-aut');
-                }}
-              >
-                Administrador
-              </a>
+              {/* Botón de administrador eliminado */}
             </nav>
           </div>
         </div>
