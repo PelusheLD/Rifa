@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -16,8 +16,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 export default function AdminLogin() {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Si ya está autenticado, redirigir al dashboard
+    if (isAuthenticated) {
+      setLocation("/admin/dashboard");
+    }
+  }, [isAuthenticated, setLocation]);
 
   const form = useForm({
     resolver: zodResolver(adminLoginSchema),

@@ -36,16 +36,11 @@ function Router() {
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/admin-aut" component={AdminLogin} />
-      {/* Ruta para ver rifas activas */}
-      <Route path="/rifas-activas" component={RifasActivasPage} />
-      {/* Ruta para comprar boletos */}
-      <Route path="/comprar-boleto/:id" component={ComprarBoletoPage} />
-      {/* Ruta para ver cómo participar */}
-      <Route path="/como-participar" component={ComoParticiparPage} />
-      {/* Ruta para ver ganadores */}
-      <Route path="/ganadores" component={GanadoresPage} />
-      {/* Usar la versión simplificada del dashboard para todas las rutas admin */}
       <Route path="/admin/:view*" component={SimpleDashboard} />
+      <Route path="/rifas-activas" component={RifasActivasPage} />
+      <Route path="/comprar-boleto/:id" component={ComprarBoletoPage} />
+      <Route path="/como-participar" component={ComoParticiparPage} />
+      <Route path="/ganadores" component={GanadoresPage} />
       <Route component={NotFound} />
     </Switch>
   );
