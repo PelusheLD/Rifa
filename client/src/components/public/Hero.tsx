@@ -18,7 +18,7 @@ export default function Hero() {
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               La mejor plataforma de 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500"> Rueda y Gana</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500"> Rifas</span>
             </h1>
             <p className="text-white/90 text-lg mb-8 max-w-lg">
               Participa en nuestras rifas con los premios más exclusivos y las mejores oportunidades para ganar grandes premios.
