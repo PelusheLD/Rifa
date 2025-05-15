@@ -92,15 +92,6 @@ export default function Header() {
               Cómo Participar
             </a>
           </nav>
-          
-          <div className="flex items-center space-x-4">
-            <Button 
-              className="bg-blue-700 hover:bg-blue-600 text-white transition-all rounded-full px-5 py-2 text-sm font-medium border border-blue-600"
-              onClick={() => navigateTo('/admin-aut')}
-            >
-              Administrador
-            </Button>
-          </div>
         </div>
         
         {/* Botón de menú móvil */}
