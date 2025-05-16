@@ -74,7 +74,7 @@ export default function RaffleTable({
   };
 
   const formatCurrency = (amount: number) => {
-    return `$${amount} MXN`;
+    return `$${amount} $`;
   };
 
   const formatDate = (dateString: string) => {
