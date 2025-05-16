@@ -1,4 +1,6 @@
 import { Switch, Route, useLocation } from "wouter";
+import { Router as WouterRouter } from "wouter";
+import useHashLocation from "./useHashLocation";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,7 +18,7 @@ import GanadoresPage from "@/pages/GanadoresPage";
 import { AuthProvider } from "@/lib/auth";
 import React, { useEffect, useState } from "react";
 
-function Router() {
+function AppRouter() {
   const [location, setLocation] = useLocation();
   const [redirected, setRedirected] = useState(false);
 
@@ -47,13 +49,14 @@ function Router() {
 }
 
 function App() {
-  // Simplificar la estructura para evitar problemas de tipado
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <WouterRouter hook={useHashLocation}>
+            <AppRouter />
+          </WouterRouter>
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
