@@ -146,7 +146,7 @@ export default function RaffleForm({ raffle, onClose }: RaffleFormProps) {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Precio (MXN)</FormLabel>
+                    <FormLabel>Precio (USD)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
