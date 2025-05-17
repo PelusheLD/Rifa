@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLocation } from "wouter";
 
 interface FeaturedRafflesProps {
   raffles: any[];
@@ -9,6 +10,8 @@ interface FeaturedRafflesProps {
 }
 
 export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesProps) {
+  const [_, setLocation] = useLocation();
+
   const formatCurrency = (amount: number) => {
     return `${amount} $ / boleto`;
   };
@@ -101,7 +104,7 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
                 <CardFooter className="p-6 pt-0">
                   <Button 
                     className="w-full bg-blue-700 hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-all border border-blue-600"
-                    onClick={() => window.location.href = `/comprar-boleto/${raffle.id}`}
+                    onClick={() => setLocation(`/comprar-boleto/${raffle.id}`)}
                   >
                     Comprar boleto
                   </Button>
@@ -124,7 +127,7 @@ export default function FeaturedRaffles({ raffles, isLoading }: FeaturedRafflesP
           <Button 
             className="px-8 py-3 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all border border-blue-500 shadow-md"
             size="lg"
-            onClick={() => window.location.href = "/rifas-activas"}
+            onClick={() => setLocation("/rifas-activas")}
           >
             Ver todas las rifas disponibles
           </Button>
