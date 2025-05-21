@@ -204,7 +204,7 @@ export default function ComprarBoletoPage() {
       
       // Encode el mensaje para URL de WhatsApp
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/+5212345678?text=${encodedMessage}`;
+      const whatsappUrl = `https://wa.me/+584263371456?text=${encodedMessage}`;
       
       // Abrir WhatsApp en nueva ventana
       window.open(whatsappUrl, '_blank');
